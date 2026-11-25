@@ -3,591 +3,734 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TaskFlow Cloud — Gerenciador de Tarefas</title>
+  <title>Tarefas</title>
   <style>
     :root {
-      --bg: #0f172a;
-      --surface: #1e293b;
-      --surface-2: #273549;
-      --border: #334155;
-      --text: #f1f5f9;
-      --text-muted: #94a3b8;
+      --bg: #0b0f19;
+      --surface: #131926;
+      --surface-hover: #1a2234;
+      --border: #1f2937;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --green: #16a34a;
+      --green-hover: #15803d;
       --primary: #3b82f6;
-      --primary-hover: #2563eb;
       --myday: #f59e0b;
       --p1: #ef4444;
       --p2: #f97316;
       --p3: #3b82f6;
-      --p4: #64748b;
-      --success: #10b981;
+      --p4: #4b5563;
       --danger: #ef4444;
-      --radius: 10px;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.5;
-      padding-bottom: 80px;
+      padding-bottom: 60px;
     }
 
-    /* Header */
+    /* Topo Minimalista */
     header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 14px 20px;
-      position: sticky;
-      top: 0;
-      z-index: 20;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 22px 18px 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
-      gap: 10px;
     }
-    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.15rem; }
-    .sync-badge {
-      font-size: 0.75rem;
-      padding: 3px 10px;
-      border-radius: 999px;
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-    }
-    .sync-badge.ok { border-color: var(--success); color: var(--success); }
-    .sync-badge.syncing { border-color: var(--myday); color: var(--myday); }
-    .sync-badge.err { border-color: var(--danger); color: var(--danger); }
 
-    .header-actions { display: flex; gap: 8px; }
-    button {
-      background: var(--surface-2);
-      color: var(--text);
+    .app-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #6b7280;
+      display: inline-block;
+      transition: background 0.2s;
+    }
+    .status-dot.ok { background: #22c55e; }
+    .status-dot.syncing { background: #f59e0b; }
+    .status-dot.err { background: #ef4444; }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+    }
+
+    .icon-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
       border: 1px solid var(--border);
-      padding: 7px 12px;
-      border-radius: 7px;
+      background: var(--surface);
+      color: var(--text);
+      font-size: 1.2rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
-      font-size: 0.85rem;
+      transition: 0.15s;
+    }
+    .icon-btn:hover { background: var(--surface-hover); }
+
+    .icon-btn.btn-add {
+      background: var(--green);
+      border-color: var(--green);
+      color: #fff;
+      font-size: 1.5rem;
       font-weight: 500;
-      transition: 0.15s;
+      line-height: 1;
     }
-    button:hover { background: #334155; }
-    button.btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; }
-    button.btn-primary:hover { background: var(--primary-hover); }
-    button.btn-danger { background: rgba(239,68,68,0.15); border-color: var(--danger); color: #fca5a5; }
-    button.btn-danger:hover { background: var(--danger); color: #fff; }
+    .icon-btn.btn-add:hover { background: var(--green-hover); }
 
-    /* Main Container */
-    .container { max-width: 960px; margin: 20px auto; padding: 0 16px; }
-
-    /* Quick Add Bar */
-    .quick-add {
+    /* Menu Dropdown da Engrenagem */
+    .gear-menu {
+      position: absolute;
+      top: 48px;
+      right: 0;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 12px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 22px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      border-radius: 10px;
+      min-width: 165px;
+      padding: 6px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      display: none;
+      flex-direction: column;
+      gap: 2px;
+      z-index: 40;
     }
-    .quick-add input[type="text"] {
-      flex: 1 1 240px;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 9px 12px;
-      border-radius: 7px;
-      font-size: 0.95rem;
-    }
-    .quick-add select, .quick-add input[type="datetime-local"] {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 8px 10px;
-      border-radius: 7px;
-      font-size: 0.85rem;
-    }
+    .gear-menu.open { display: flex; }
 
-    /* Section Headers */
-    .section-box {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-      margin-bottom: 22px;
-    }
-    .section-box.myday-box {
-      border-color: rgba(245, 158, 11, 0.45);
-      background: linear-gradient(180deg, rgba(245, 158, 11, 0.07) 0%, var(--surface) 100%);
-    }
-    .section-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .section-title { font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-    .count-pill {
-      background: var(--surface-2);
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-    }
-
-    /* Filters Bar */
-    .filters {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 14px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
-    }
-    .filters input, .filters select {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 6px 10px;
-      border-radius: 6px;
-      font-size: 0.82rem;
-    }
-    .filter-check {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      cursor: pointer;
-      user-select: none;
-    }
-
-    /* Task Row */
-    .task-list { display: flex; flex-direction: column; gap: 8px; }
-    .task-item {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-left: 4px solid var(--p4);
-      border-radius: 8px;
-      padding: 10px 12px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      transition: 0.15s;
-    }
-    .task-item:hover { border-color: #475569; background: #131d33; }
-    .task-item.p-1 { border-left-color: var(--p1); }
-    .task-item.p-2 { border-left-color: var(--p2); }
-    .task-item.p-3 { border-left-color: var(--p3); }
-    .task-item.p-4 { border-left-color: var(--p4); }
-    .task-item.completed { opacity: 0.55; }
-    .task-item.completed .task-title { text-decoration: line-through; }
-    .task-item.blocked { border-style: dashed; opacity: 0.78; }
-
-    .btn-myday {
+    .gear-menu button {
       background: transparent;
       border: none;
-      font-size: 1.2rem;
-      padding: 2px 4px;
-      color: var(--text-muted);
+      color: var(--text);
+      text-align: left;
+      padding: 10px 12px;
+      border-radius: 7px;
+      font-size: 0.9rem;
       cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
-    .btn-myday.active { color: var(--myday); }
+    .gear-menu button:hover { background: var(--surface-hover); }
+
+    /* Área Principal */
+    main {
+      max-width: 720px;
+      margin: 10px auto;
+      padding: 0 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    .list-section h2 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .list-section.today-section h2 { color: var(--myday); }
+
+    .count {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .empty-msg {
+      color: #4b5563;
+      font-size: 0.88rem;
+      padding: 8px 2px;
+    }
+
+    /* Cartão de Tarefa Limpo */
+    .task-row {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--p4);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .task-row:hover {
+      background: var(--surface-hover);
+      border-color: #374151;
+    }
+    .task-row.p-1 { border-left-color: var(--p1); }
+    .task-row.p-2 { border-left-color: var(--p2); }
+    .task-row.p-3 { border-left-color: var(--p3); }
+    .task-row.p-4 { border-left-color: var(--p4); }
+    .task-row.blocked { opacity: 0.7; border-style: dashed; }
+    .task-row.completed { opacity: 0.5; }
+    .task-row.completed .task-title { text-decoration: line-through; }
 
     .task-check {
       width: 19px;
       height: 19px;
-      accent-color: var(--primary);
+      accent-color: var(--green);
       cursor: pointer;
       flex-shrink: 0;
     }
 
-    .task-body { flex: 1; cursor: pointer; min-width: 0; }
-    .task-title { font-weight: 600; font-size: 0.95rem; word-break: break-word; }
-    .task-meta {
+    .task-content {
+      flex: 1;
+      min-width: 0;
+      cursor: pointer;
+    }
+
+    .task-title {
+      font-size: 0.96rem;
+      font-weight: 500;
+      word-break: break-word;
+    }
+
+    .task-submeta {
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 4px;
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      align-items: center;
-    }
-
-    .badge {
-      padding: 2px 7px;
-      border-radius: 5px;
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .badge.overdue { background: rgba(239,68,68,0.18); border-color: var(--danger); color: #fca5a5; }
-    .badge.today { background: rgba(245,158,11,0.18); border-color: var(--myday); color: #fcd34d; }
-    .badge.blocked-badge { background: rgba(239,68,68,0.15); border-color: #f87171; color: #fecaca; }
-    .badge.tag { color: #93c5fd; border-color: rgba(59,130,246,0.4); }
-
-    /* Drawer / Modal */
-    .overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.65);
-      display: none;
-      justify-content: flex-end;
-      z-index: 50;
-    }
-    .overlay.open { display: flex; }
-    .drawer {
-      width: 100%;
-      max-width: 540px;
-      background: var(--surface);
-      height: 100%;
-      overflow-y: auto;
-      padding: 20px;
-      border-left: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-    .drawer-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 10px;
-    }
-
-    .form-group { display: flex; flex-direction: column; gap: 5px; }
-    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
-    input[type="text"], input[type="number"], input[type="datetime-local"], select, textarea {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      color: var(--text);
-      padding: 8px 10px;
-      border-radius: 7px;
-      font-size: 0.88rem;
-      font-family: inherit;
-    }
-    textarea { min-height: 110px; resize: vertical; }
-
-    /* Markdown Preview */
-    .md-tabs { display: flex; gap: 6px; margin-bottom: 4px; }
-    .md-tab { padding: 3px 9px; font-size: 0.78rem; }
-    .md-tab.active { background: var(--primary); border-color: var(--primary); color: #fff; }
-    .md-preview {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 7px;
-      padding: 10px;
-      min-height: 110px;
-      font-size: 0.88rem;
-    }
-    .md-preview a { color: #60a5fa; }
-    .md-preview code { background: #334155; padding: 2px 5px; border-radius: 4px; font-family: monospace; }
-    .md-preview pre { background: #0b1120; padding: 10px; border-radius: 6px; overflow-x: auto; margin: 6px 0; }
-    .md-preview ul { padding-left: 20px; margin: 5px 0; }
-
-    /* Subtasks & Attachments */
-    .subtask-item, .attach-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: var(--bg);
-      padding: 6px 10px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      font-size: 0.85rem;
       gap: 8px;
+      margin-top: 3px;
+      font-size: 0.76rem;
+      color: var(--text-muted);
     }
-    .subtask-left { display: flex; align-items: center; gap: 8px; flex: 1; }
+    .task-submeta:empty { display: none; }
 
-    /* Center Modals (Config & Alarm) */
-    .center-modal {
+    .meta-overdue { color: #f87171; font-weight: 500; }
+    .meta-today { color: #fbbf24; }
+    .meta-blocked { color: #fca5a5; }
+    .meta-tag { color: #60a5fa; }
+
+    .star-btn {
+      background: transparent;
+      border: none;
+      color: #4b5563;
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 2px 4px;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+    .star-btn:hover { color: var(--text-muted); }
+    .star-btn.active { color: var(--myday); }
+
+    .completed-toggle {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.82rem;
+      cursor: pointer;
+      align-self: flex-start;
+      padding: 4px 0;
+    }
+    .completed-toggle:hover { color: var(--text); }
+
+    /* Modais */
+    .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.82);
+      background: rgba(0, 0, 0, 0.75);
       display: none;
       align-items: center;
       justify-content: center;
       padding: 16px;
-      z-index: 100;
+      z-index: 60;
     }
-    .center-modal.open { display: flex; }
-    .modal-card {
+    .modal-backdrop.open { display: flex; }
+
+    .modal-box {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 22px;
+      border-radius: 14px;
       width: 100%;
-      max-width: 460px;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 22px;
       display: flex;
       flex-direction: column;
       gap: 14px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
     }
-    .alarm-card {
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .modal-header h3 { font-size: 1.05rem; font-weight: 600; }
+
+    .close-x {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 4px 8px;
+    }
+    .close-x:hover { color: var(--text); }
+
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    label { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
+
+    input[type="text"], input[type="number"], input[type="datetime-local"], select, textarea {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 11px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      width: 100%;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+    textarea { min-height: 95px; resize: vertical; }
+
+    .check-inline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.88rem;
+      color: var(--text);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    details.advanced-box {
+      border-top: 1px solid var(--border);
+      padding-top: 10px;
+    }
+    details.advanced-box summary {
+      font-size: 0.83rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+      margin-bottom: 10px;
+    }
+    .advanced-fields {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-top: 4px;
+    }
+
+    .btn {
+      background: var(--surface-hover);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 14px;
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .btn:hover { background: #263147; }
+    .btn-green { background: var(--green); border-color: var(--green); color: #fff; }
+    .btn-green:hover { background: var(--green-hover); }
+    .btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .btn-danger { background: rgba(239, 68, 68, 0.12); border-color: var(--danger); color: #fca5a5; }
+    .btn-danger:hover { background: var(--danger); color: #fff; }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    /* Subtarefas, Markdown e Anexos */
+    .item-chip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      padding: 6px 10px;
+      border-radius: 7px;
+      font-size: 0.85rem;
+      gap: 8px;
+    }
+    .md-switch { display: flex; gap: 6px; }
+    .md-switch button {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 2px 8px;
+      border-radius: 5px;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+    .md-switch button.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .md-view {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      min-height: 95px;
+      font-size: 0.88rem;
+    }
+    .md-view a { color: #60a5fa; }
+    .md-view code { background: #1f2937; padding: 2px 5px; border-radius: 4px; }
+    .md-view pre { background: #070a12; padding: 8px; border-radius: 6px; overflow-x: auto; margin: 5px 0; }
+    .md-view ul { padding-left: 18px; }
+
+    /* Alarme */
+    .alarm-box {
       border: 2px solid var(--danger);
-      box-shadow: 0 0 35px rgba(239,68,68,0.45);
-      animation: pulseBorder 1s infinite alternate;
-    }
-    @keyframes pulseBorder {
-      from { box-shadow: 0 0 15px rgba(239,68,68,0.3); }
-      to { box-shadow: 0 0 40px rgba(239,68,68,0.8); }
+      box-shadow: 0 0 35px rgba(239, 68, 68, 0.45);
     }
 
     .toast {
       position: fixed;
       bottom: 20px;
-      right: 20px;
-      background: var(--surface-2);
-      border: 1px solid var(--primary);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1f2937;
+      border: 1px solid #374151;
       color: var(--text);
-      padding: 10px 16px;
+      padding: 9px 16px;
       border-radius: 8px;
       font-size: 0.85rem;
       z-index: 90;
       display: none;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
     }
 
-    @media (max-width: 600px) {
-      .form-row { grid-template-columns: 1fr; }
+    @media (max-width: 540px) {
+      .field-row { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
 <header>
-  <div class="brand">
-    <span>⚡ TaskFlow Cloud</span>
-    <span id="syncStatus" class="sync-badge">Modo Local</span>
+  <div class="app-title">
+    <span>Tarefas</span>
+    <span id="syncDot" class="status-dot" title="Modo Local"></span>
   </div>
-  <div class="header-actions">
-    <button onclick="manualSync()" title="Forçar sincronização">🔄 Sincronizar</button>
-    <button onclick="testAlarmSound()" title="Testar áudio e permissão">🔔 Testar Alarme</button>
-    <button onclick="openConfigModal()">⚙️ Nuvem</button>
+
+  <div class="top-actions">
+    <button type="button" class="icon-btn btn-add" onclick="openCreateModal()" title="Nova Tarefa">+</button>
+    <button type="button" id="gearBtn" class="icon-btn" onclick="toggleGearMenu(event)" title="Opções">⚙️</button>
+
+    <div id="gearMenu" class="gear-menu">
+      <button type="button" onclick="openConfigFromMenu()">☁️ Nuvem</button>
+      <button type="button" onclick="syncFromMenu()">🔄 Sincronizar</button>
+    </div>
   </div>
 </header>
 
-<div class="container">
-  <!-- Adição Rápida -->
-  <form class="quick-add" onsubmit="handleQuickAdd(event)">
-    <input type="text" id="qaTitle" placeholder="Nova tarefa... (Enter para adicionar)" required />
-    <select id="qaPriority" title="Prioridade">
-      <option value="1">🔴 P1 - Urgente</option>
-      <option value="2">🟠 P2 - Alta</option>
-      <option value="3" selected>🔵 P3 - Média</option>
-      <option value="4">⚪ P4 - Baixa</option>
-    </select>
-    <input type="datetime-local" id="qaDue" title="Prazo (opcional)" />
-    <label class="filter-check" title="Incluir em Tarefas do Dia">
-      <input type="checkbox" id="qaMyDay" checked /> ☀️ Meu Dia
-    </label>
-    <button type="submit" class="btn-primary">+ Adicionar</button>
-  </form>
-
-  <!-- Seção Superior: Tarefas do Dia -->
-  <section class="section-box myday-box">
-    <div class="section-header">
-      <div class="section-title">☀️ Tarefas do Dia <span id="myDayCount" class="count-pill">0</span></div>
-      <small style="color: var(--text-muted);">Ordenado por Prioridade &gt; Prazo</small>
-    </div>
-    <div id="myDayList" class="task-list"></div>
+<main>
+  <!-- Lista: Hoje -->
+  <section class="list-section today-section">
+    <h2>☀️ Hoje <span id="todayCount" class="count">0</span></h2>
+    <div id="todayList" class="task-list"></div>
   </section>
 
-  <!-- Backlog & Lista Geral -->
-  <section class="section-box">
-    <div class="section-header">
-      <div class="section-title">📋 Backlog &amp; Todas as Tarefas <span id="backlogCount" class="count-pill">0</span></div>
-    </div>
-
-    <div class="filters">
-      <input type="text" id="filterSearch" placeholder="🔍 Buscar título ou nota..." oninput="renderAll()" />
-      <select id="filterPriority" onchange="renderAll()">
-        <option value="">Todas Prioridades</option>
-        <option value="1">P1 - Urgente</option>
-        <option value="2">P2 - Alta</option>
-        <option value="3">P3 - Média</option>
-        <option value="4">P4 - Baixa</option>
-      </select>
-      <select id="filterTag" onchange="renderAll()">
-        <option value="">Todas Etiquetas</option>
-      </select>
-      <select id="filterDue" onchange="renderAll()">
-        <option value="">Todos Prazos</option>
-        <option value="overdue">Vencidas</option>
-        <option value="today">Vencem Hoje</option>
-      </select>
-      <label class="filter-check">
-        <input type="checkbox" id="filterHideBlocked" onchange="renderAll()" /> Ocultar Bloqueadas
-      </label>
-      <label class="filter-check">
-        <input type="checkbox" id="filterShowCompleted" onchange="renderAll()" /> Mostrar Concluídas
-      </label>
-    </div>
-
-    <div id="backlogList" class="task-list"></div>
+  <!-- Lista: Tarefas -->
+  <section class="list-section">
+    <h2>📋 Tarefas <span id="tasksCount" class="count">0</span></h2>
+    <div id="generalList" class="task-list"></div>
   </section>
-</div>
 
-<!-- Drawer Lateral de Edição -->
-<div id="editOverlay" class="overlay" onclick="closeDrawerOnBackdrop(event)">
-  <div class="drawer">
-    <div class="drawer-header">
-      <h3>Detalhes da Tarefa</h3>
-      <button onclick="closeDrawer()">✕ Fechar</button>
+  <!-- Concluídas (discreto no rodapé, aparece apenas se houver concluídas) -->
+  <div id="completedArea" style="display:none; flex-direction:column; gap:10px;">
+    <button type="button" id="toggleCompletedBtn" class="completed-toggle" onclick="toggleShowCompleted()">
+      ▸ Mostrar concluídas (0)
+    </button>
+    <div id="completedList" class="task-list" style="display:none;"></div>
+  </div>
+</main>
+
+<!-- Modal: Nova Tarefa (+) -->
+<div id="createModal" class="modal-backdrop" onclick="closeOnBackdrop(event, 'createModal')">
+  <form class="modal-box" onsubmit="handleCreateTask(event)">
+    <div class="modal-header">
+      <h3>Nova Tarefa</h3>
+      <button type="button" class="close-x" onclick="closeModal('createModal')">✕</button>
     </div>
 
-    <input type="hidden" id="editId" />
-
-    <div class="form-group">
-      <label>Título da Tarefa</label>
-      <input type="text" id="editTitle" onchange="saveDrawerChanges()" />
+    <div class="field">
+      <label>Título</label>
+      <input type="text" id="newTitle" placeholder="O que precisa ser feito?" required />
     </div>
 
-    <div class="form-row">
-      <div class="form-group">
+    <div class="field-row">
+      <div class="field">
         <label>Prioridade</label>
-        <select id="editPriority" onchange="saveDrawerChanges()">
-          <option value="1">🔴 1 - Urgente</option>
-          <option value="2">🟠 2 - Alta</option>
-          <option value="3">🔵 3 - Média</option>
-          <option value="4">⚪ 4 - Baixa</option>
+        <select id="newPriority">
+          <option value="1">🔴 P1 - Urgente</option>
+          <option value="2">🟠 P2 - Alta</option>
+          <option value="3" selected>🔵 P3 - Média</option>
+          <option value="4">⚪ P4 - Baixa</option>
         </select>
       </div>
-      <div class="form-group">
-        <label>Prazo (Data e Hora)</label>
-        <input type="datetime-local" id="editDue" onchange="saveDrawerChanges()" />
+      <div class="field">
+        <label>Prazo</label>
+        <input type="datetime-local" id="newDue" />
       </div>
     </div>
 
-    <div class="form-row">
-      <div class="form-group">
+    <label class="check-inline">
+      <input type="checkbox" id="newIsToday" checked /> Adicionar em <strong>Hoje</strong>
+    </label>
+
+    <details class="advanced-box">
+      <summary>+ Mais detalhes (Alerta, Recorrência, Dependência, Tags, Notas)</summary>
+      <div class="advanced-fields">
+        <div class="field-row">
+          <div class="field">
+            <label>Alerta / Despertador</label>
+            <select id="newAlertType">
+              <option value="none">Sem alerta</option>
+              <option value="notification">🔔 Notificação</option>
+              <option value="alarm">⏰ Despertador sonoro</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Horário do Alerta</label>
+            <input type="datetime-local" id="newAlertTime" />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Recorrência</label>
+            <select id="newRecMode" onchange="toggleNewRecFields()">
+              <option value="none">Não se repete</option>
+              <option value="calendar">Por calendário</option>
+              <option value="completion">Dias após conclusão</option>
+            </select>
+          </div>
+          <div class="field" id="newRecTypeWrap" style="display:none;">
+            <label>Frequência</label>
+            <select id="newRecType">
+              <option value="daily">Diária</option>
+              <option value="weekly">Semanal</option>
+              <option value="monthly">Mensal</option>
+              <option value="yearly">Anual</option>
+            </select>
+          </div>
+          <div class="field" id="newRecIntervalWrap" style="display:none;">
+            <label>Dias após concluir</label>
+            <input type="number" id="newRecInterval" min="1" value="1" />
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Bloqueada por</label>
+            <select id="newDependsOn">
+              <option value="">Nenhuma</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Etiquetas (vírgula)</label>
+            <input type="text" id="newTags" placeholder="trabalho, casa" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Notas (Markdown)</label>
+          <textarea id="newNotes" placeholder="Detalhes, links ou passos..."></textarea>
+        </div>
+      </div>
+    </details>
+
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('createModal')">Cancelar</button>
+      <button type="submit" class="btn btn-green">Salvar Tarefa</button>
+    </div>
+  </form>
+</div>
+
+<!-- Modal: Editar / Detalhes da Tarefa -->
+<div id="editModal" class="modal-backdrop" onclick="closeOnBackdrop(event, 'editModal')">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Detalhes da Tarefa</h3>
+      <button type="button" class="close-x" onclick="closeModal('editModal')">✕</button>
+    </div>
+
+    <div class="field">
+      <label>Título</label>
+      <input type="text" id="editTitle" onchange="saveEditChanges()" />
+    </div>
+
+    <label class="check-inline">
+      <input type="checkbox" id="editIsToday" onchange="saveEditChanges()" /> Exibir em <strong>Hoje</strong>
+    </label>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Prioridade</label>
+        <select id="editPriority" onchange="saveEditChanges()">
+          <option value="1">🔴 P1 - Urgente</option>
+          <option value="2">🟠 P2 - Alta</option>
+          <option value="3">🔵 P3 - Média</option>
+          <option value="4">⚪ P4 - Baixa</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Prazo</label>
+        <input type="datetime-local" id="editDue" onchange="saveEditChanges()" />
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
         <label>Tipo de Alerta</label>
-        <select id="editAlertType" onchange="saveDrawerChanges()">
+        <select id="editAlertType" onchange="saveEditChanges()">
           <option value="none">Sem alerta</option>
-          <option value="notification">🔔 Notificação simples</option>
+          <option value="notification">🔔 Notificação</option>
           <option value="alarm">⏰ Despertador sonoro</option>
         </select>
       </div>
-      <div class="form-group">
-        <label>Horário do Alerta/Despertador</label>
-        <input type="datetime-local" id="editAlertTime" onchange="saveDrawerChanges()" />
+      <div class="field">
+        <label>Horário do Alerta</label>
+        <input type="datetime-local" id="editAlertTime" onchange="saveEditChanges()" />
       </div>
     </div>
 
-    <div class="form-row">
-      <div class="form-group">
-        <label>Dependência (Bloqueada por)</label>
-        <select id="editDependsOn" onchange="saveDrawerChanges()">
-          <option value="">Nenhuma (Livre)</option>
+    <div class="field-row">
+      <div class="field">
+        <label>Bloqueada por</label>
+        <select id="editDependsOn" onchange="saveEditChanges()">
+          <option value="">Nenhuma</option>
         </select>
       </div>
-      <div class="form-group">
-        <label>Etiquetas (separadas por vírgula)</label>
-        <input type="text" id="editTags" placeholder="ex: trabalho, urgente, projeto" onchange="saveDrawerChanges()" />
+      <div class="field">
+        <label>Etiquetas</label>
+        <input type="text" id="editTags" placeholder="ex: trabalho, urgente" onchange="saveEditChanges()" />
       </div>
     </div>
 
-    <!-- Recorrência -->
-    <div class="form-group" style="background: var(--bg); padding: 10px; border-radius: 8px; border: 1px solid var(--border);">
-      <label>🔁 Recorrência</label>
-      <div class="form-row" style="margin-top: 4px;">
-        <select id="editRecMode" onchange="toggleRecurrenceFields(); saveDrawerChanges();">
+    <div class="field-row">
+      <div class="field">
+        <label>Recorrência</label>
+        <select id="editRecMode" onchange="toggleEditRecFields(); saveEditChanges();">
           <option value="none">Não se repete</option>
-          <option value="calendar">Por calendário (data fixa)</option>
-          <option value="completion">Após a conclusão (X dias depois)</option>
-        </select>
-        <select id="editRecType" onchange="saveDrawerChanges()">
-          <option value="daily">Diariamente</option>
-          <option value="weekly">Semanalmente</option>
-          <option value="monthly">Mensalmente</option>
-          <option value="yearly">Anualmente</option>
-          <option value="custom_days">A cada N dias</option>
+          <option value="calendar">Por calendário</option>
+          <option value="completion">Dias após conclusão</option>
         </select>
       </div>
-      <div id="recIntervalWrap" style="margin-top: 8px; display: none;">
-        <label>Intervalo em dias:</label>
-        <input type="number" id="editRecInterval" min="1" value="1" onchange="saveDrawerChanges()" />
+      <div class="field" id="editRecTypeWrap" style="display:none;">
+        <label>Frequência</label>
+        <select id="editRecType" onchange="saveEditChanges()">
+          <option value="daily">Diária</option>
+          <option value="weekly">Semanal</option>
+          <option value="monthly">Mensal</option>
+          <option value="yearly">Anual</option>
+        </select>
+      </div>
+      <div class="field" id="editRecIntervalWrap" style="display:none;">
+        <label>Dias após concluir</label>
+        <input type="number" id="editRecInterval" min="1" value="1" onchange="saveEditChanges()" />
       </div>
     </div>
 
     <!-- Subtarefas -->
-    <div class="form-group">
-      <label>☑️ Subtarefas</label>
-      <div style="display: flex; gap: 6px;">
-        <input type="text" id="newSubtaskInput" placeholder="Adicionar subtarefa..." style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();addSubtask();}" />
-        <button type="button" onclick="addSubtask()">+</button>
+    <div class="field">
+      <label>Subtarefas</label>
+      <div style="display:flex; gap:6px;">
+        <input type="text" id="newSubInput" placeholder="Nova subtarefa..." onkeydown="if(event.key==='Enter'){event.preventDefault();addSubtask();}" />
+        <button type="button" class="btn" onclick="addSubtask()">+</button>
       </div>
-      <div id="subtasksContainer" style="display: flex; flex-direction: column; gap: 5px; margin-top: 6px;"></div>
+      <div id="subtasksList" style="display:flex; flex-direction:column; gap:5px; margin-top:5px;"></div>
     </div>
 
-    <!-- Notas em Markdown -->
-    <div class="form-group">
+    <!-- Notas Markdown -->
+    <div class="field">
       <div style="display:flex; justify-content:space-between; align-items:center;">
-        <label>📝 Notas &amp; Links (Markdown)</label>
-        <div class="md-tabs">
-          <button type="button" id="tabWrite" class="md-tab active" onclick="switchMdTab('write')">Editar</button>
-          <button type="button" id="tabPreview" class="md-tab" onclick="switchMdTab('preview')">Visualizar</button>
+        <label>Notas (Markdown)</label>
+        <div class="md-switch">
+          <button type="button" id="btnMdWrite" class="active" onclick="setMdMode('write')">Editar</button>
+          <button type="button" id="btnMdRead" onclick="setMdMode('read')">Visualizar</button>
         </div>
       </div>
-      <textarea id="editNotes" placeholder="Suporta **negrito**, *itálico*, listas (- item), [links](https://...) e `código`..." onchange="saveDrawerChanges()"></textarea>
-      <div id="notesPreview" class="md-preview" style="display: none;"></div>
+      <textarea id="editNotes" onchange="saveEditChanges()"></textarea>
+      <div id="editNotesPreview" class="md-view" style="display:none;"></div>
     </div>
 
-    <!-- Anexos (Google Drive) -->
-    <div class="form-group">
-      <label>📎 Anexos (Salvos no Google Drive)</label>
-      <input type="file" id="fileUploadInput" onchange="handleFileUpload(event)" />
-      <small id="uploadStatus" style="color: var(--myday);"></small>
-      <div id="attachmentsContainer" style="display: flex; flex-direction: column; gap: 5px; margin-top: 6px;"></div>
+    <!-- Anexos Google Drive -->
+    <div class="field">
+      <label>Anexos (Google Drive)</label>
+      <input type="file" id="editFileInput" onchange="uploadAttachment(event)" />
+      <small id="uploadMsg" style="color:var(--myday);"></small>
+      <div id="attachmentsList" style="display:flex; flex-direction:column; gap:5px; margin-top:5px;"></div>
     </div>
 
-    <div style="margin-top: auto; padding-top: 12px; border-top: 1px solid var(--border); display: flex; justify-content: space-between;">
-      <button type="button" class="btn-danger" onclick="deleteCurrentTask()">🗑️ Excluir Tarefa</button>
-      <button type="button" class="btn-primary" onclick="closeDrawer()">Concluir Edição</button>
+    <div class="modal-footer" style="justify-content:space-between; border-top:1px solid var(--border); padding-top:12px;">
+      <button type="button" class="btn btn-danger" onclick="deleteTask()">Excluir</button>
+      <button type="button" class="btn btn-primary" onclick="closeModal('editModal')">Concluir</button>
     </div>
   </div>
 </div>
 
-<!-- Modal de Configuração da Nuvem -->
-<div id="configModal" class="center-modal">
-  <div class="modal-card">
-    <h3>☁️ Conexão Google Apps Script</h3>
-    <p style="font-size: 0.83rem; color: var(--text-muted);">
-      Cole a URL do Web App implantado no Google Apps Script e o Token secreto configurado no código.
-    </p>
-    <div class="form-group">
-      <label>URL do Web App (Apps Script)</label>
+<!-- Modal: Configuração da Nuvem -->
+<div id="configModal" class="modal-backdrop" onclick="closeOnBackdrop(event, 'configModal')">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>☁️ Configuração da Nuvem</h3>
+      <button type="button" class="close-x" onclick="closeModal('configModal')">✕</button>
+    </div>
+    <div class="field">
+      <label>URL do Web App (Google Apps Script)</label>
       <input type="text" id="cfgUrl" placeholder="https://script.google.com/macros/s/.../exec" />
     </div>
-    <div class="form-group">
+    <div class="field">
       <label>Token Secreto</label>
-      <input type="text" id="cfgToken" placeholder="MUDE_PARA_SUA_SENHA_SECRETA_123" />
+      <input type="text" id="cfgToken" placeholder="Sua senha configurada no script" />
     </div>
-    <div style="display: flex; justify-content: flex-end; gap: 8px;">
-      <button onclick="closeConfigModal()">Cancelar</button>
-      <button class="btn-primary" onclick="saveConfig()">Salvar e Sincronizar</button>
+    <div class="modal-footer">
+      <button type="button" class="btn" onclick="closeModal('configModal')">Cancelar</button>
+      <button type="button" class="btn btn-green" onclick="saveCloudConfig()">Salvar e Sincronizar</button>
     </div>
   </div>
 </div>
 
-<!-- Modal Obrigatório do Despertador -->
-<div id="alarmModal" class="center-modal">
-  <div class="modal-card alarm-card">
-    <div style="font-size: 1.4rem; font-weight: 800; color: #fca5a5;">⏰ DESPERTADOR DE TAREFA</div>
-    <div id="alarmTaskTitle" style="font-size: 1.15rem; font-weight: 700;"></div>
-    <div id="alarmTaskMeta" style="font-size: 0.85rem; color: var(--text-muted);"></div>
-    <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px;">
-      <button onclick="snoozeAlarm(5)">💤 Adiar 5 min</button>
-      <button onclick="snoozeAlarm(15)">💤 Adiar 15 min</button>
-      <button class="btn-primary" onclick="dismissAlarm()">✓ Dispensar Alarme</button>
+<!-- Modal: Despertador Sonoro -->
+<div id="alarmModal" class="modal-backdrop">
+  <div class="modal-box alarm-box">
+    <div style="color:#fca5a5; font-weight:700; font-size:1.1rem;">⏰ DESPERTADOR</div>
+    <div id="alarmTitle" style="font-size:1.15rem; font-weight:600;"></div>
+    <div id="alarmDue" style="font-size:0.85rem; color:var(--text-muted);"></div>
+    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
+      <button type="button" class="btn" onclick="snoozeAlarm(5)">Adiar 5 min</button>
+      <button type="button" class="btn" onclick="snoozeAlarm(15)">Adiar 15 min</button>
+      <button type="button" class="btn btn-green" onclick="dismissAlarm()">Dispensar</button>
     </div>
   </div>
 </div>
@@ -595,15 +738,14 @@
 <div id="toast" class="toast"></div>
 
 <script>
-  // --- ESTADO GLOBAL ---
   let tasks = JSON.parse(localStorage.getItem("tf_tasks") || "[]");
   let config = JSON.parse(localStorage.getItem("tf_config") || '{"url":"","token":""}');
   let currentEditId = null;
+  let showCompleted = false;
   let audioCtx = null;
-  let alarmInterval = null;
-  let activeAlarmTaskId = null;
+  let alarmTimer = null;
+  let activeAlarmId = null;
 
-  // --- INICIALIZAÇÃO ---
   window.addEventListener("DOMContentLoaded", () => {
     renderAll();
     if ("Notification" in window && Notification.permission === "default") {
@@ -612,27 +754,46 @@
     if (config.url && config.token) {
       pullFromCloud();
     }
-    setInterval(checkAlertsLoop, 10000);
-    document.addEventListener("click", unlockAudio, { once: true });
+    setInterval(checkAlerts, 10000);
+    document.addEventListener("click", (e) => {
+      if (!e.target.closest("#gearBtn") && !e.target.closest("#gearMenu")) {
+        document.getElementById("gearMenu").classList.remove("open");
+      }
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    });
   });
 
-  function unlockAudio() {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    }
-    if (audioCtx.state === "suspended") audioCtx.resume();
+  // --- MENU ENGRENAGEM ---
+  function toggleGearMenu(e) {
+    e.stopPropagation();
+    document.getElementById("gearMenu").classList.toggle("open");
   }
 
-  // --- SINCRONIZAÇÃO COM GOOGLE APPS SCRIPT ---
-  function setSyncStatus(state, text) {
-    const el = document.getElementById("syncStatus");
-    el.className = "sync-badge " + state;
-    el.textContent = text;
+  function openConfigFromMenu() {
+    document.getElementById("gearMenu").classList.remove("open");
+    document.getElementById("cfgUrl").value = config.url || "";
+    document.getElementById("cfgToken").value = config.token || "";
+    openModal("configModal");
+  }
+
+  function syncFromMenu() {
+    document.getElementById("gearMenu").classList.remove("open");
+    if (!config.url || !config.token) return openConfigFromMenu();
+    pullFromCloud();
+  }
+
+  // --- NUVEM (GOOGLE APPS SCRIPT) ---
+  function setSyncDot(state, title) {
+    const dot = document.getElementById("syncDot");
+    dot.className = "status-dot " + state;
+    dot.title = title;
   }
 
   async function pullFromCloud() {
     if (!config.url || !config.token) return;
-    setSyncStatus("syncing", "Sincronizando...");
+    setSyncDot("syncing", "Sincronizando...");
     try {
       const res = await fetch(config.url, {
         method: "POST",
@@ -644,22 +805,25 @@
         tasks = data.tasks;
         localStorage.setItem("tf_tasks", JSON.stringify(tasks));
         renderAll();
-        setSyncStatus("ok", "Sincronizado ✓");
+        setSyncDot("ok", "Sincronizado");
+        showToast("Sincronizado ✓");
       } else {
-        setSyncStatus("err", "Erro: " + (data.message || "Falha"));
+        setSyncDot("err", data.message || "Erro na nuvem");
+        showToast("Erro: " + (data.message || "Falha ao sincronizar"));
       }
     } catch (err) {
-      setSyncStatus("err", "Offline (Salvo local)");
+      setSyncDot("err", "Offline");
+      showToast("Sem conexão (modo local)");
     }
   }
 
   async function pushToCloud() {
     localStorage.setItem("tf_tasks", JSON.stringify(tasks));
     if (!config.url || !config.token) {
-      setSyncStatus("", "Modo Local");
+      setSyncDot("", "Modo Local");
       return;
     }
-    setSyncStatus("syncing", "Salvando na nuvem...");
+    setSyncDot("syncing", "Salvando...");
     try {
       const res = await fetch(config.url, {
         method: "POST",
@@ -667,58 +831,87 @@
         body: JSON.stringify({ token: config.token, action: "syncAll", tasks })
       });
       const data = await res.json();
-      if (data.status === "ok") {
-        setSyncStatus("ok", "Sincronizado ✓");
-      } else {
-        setSyncStatus("err", "Erro ao salvar");
-      }
+      setSyncDot(data.status === "ok" ? "ok" : "err", data.status === "ok" ? "Sincronizado" : "Erro ao salvar");
     } catch (err) {
-      setSyncStatus("err", "Offline (Pendente)");
+      setSyncDot("err", "Offline");
     }
   }
 
-  function manualSync() {
-    if (!config.url) return openConfigModal();
+  function saveCloudConfig() {
+    config.url = document.getElementById("cfgUrl").value.trim();
+    config.token = document.getElementById("cfgToken").value.trim();
+    localStorage.setItem("tf_config", JSON.stringify(config));
+    closeModal("configModal");
     pullFromCloud();
   }
 
-  // --- CRUD DE TAREFAS ---
-  function handleQuickAdd(e) {
+  // --- CADASTRO DE NOVA TAREFA (+) ---
+  function openCreateModal() {
+    document.getElementById("newTitle").value = "";
+    document.getElementById("newPriority").value = "3";
+    document.getElementById("newDue").value = "";
+    document.getElementById("newIsToday").checked = true;
+    document.getElementById("newAlertType").value = "none";
+    document.getElementById("newAlertTime").value = "";
+    document.getElementById("newRecMode").value = "none";
+    document.getElementById("newTags").value = "";
+    document.getElementById("newNotes").value = "";
+    toggleNewRecFields();
+
+    const depSel = document.getElementById("newDependsOn");
+    depSel.innerHTML = `<option value="">Nenhuma</option>` +
+      tasks.filter(t => !t.completed).map(t => `<option value="${t.id}">${escapeHtml(t.title)}</option>`).join("");
+
+    openModal("createModal");
+    setTimeout(() => document.getElementById("newTitle").focus(), 60);
+  }
+
+  function toggleNewRecFields() {
+    const mode = document.getElementById("newRecMode").value;
+    document.getElementById("newRecTypeWrap").style.display = mode === "calendar" ? "flex" : "none";
+    document.getElementById("newRecIntervalWrap").style.display = mode === "completion" ? "flex" : "none";
+  }
+
+  function handleCreateTask(e) {
     e.preventDefault();
-    const title = document.getElementById("qaTitle").value.trim();
+    const title = document.getElementById("newTitle").value.trim();
     if (!title) return;
 
-    const priority = parseInt(document.getElementById("qaPriority").value, 10);
-    const dueDate = document.getElementById("qaDue").value;
-    const isMyDay = document.getElementById("qaMyDay").checked;
+    const dueDate = document.getElementById("newDue").value;
+    const alertType = document.getElementById("newAlertType").value;
+    const alertTime = document.getElementById("newAlertTime").value || (alertType !== "none" ? dueDate : "");
 
-    const newTask = {
+    const task = {
       id: "t_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
       title,
       completed: false,
       completedAt: null,
-      priority,
+      priority: parseInt(document.getElementById("newPriority").value, 10),
       dueDate,
-      isMyDay,
-      alertType: dueDate ? "notification" : "none",
-      alertTime: dueDate || "",
+      isMyDay: document.getElementById("newIsToday").checked,
+      alertType,
+      alertTime,
       alertTriggered: false,
       subtasks: [],
-      recurrence: { mode: "none", type: "daily", interval: 1 },
-      tags: [],
-      notes: "",
+      recurrence: {
+        mode: document.getElementById("newRecMode").value,
+        type: document.getElementById("newRecType").value,
+        interval: parseInt(document.getElementById("newRecInterval").value || 1, 10)
+      },
+      tags: document.getElementById("newTags").value.split(",").map(s => s.trim().replace(/^#/, "")).filter(Boolean),
+      notes: document.getElementById("newNotes").value,
       attachments: [],
-      dependsOn: ""
+      dependsOn: document.getElementById("newDependsOn").value
     };
 
-    tasks.unshift(newTask);
-    document.getElementById("qaTitle").value = "";
-    document.getElementById("qaDue").value = "";
+    tasks.unshift(task);
+    closeModal("createModal");
     renderAll();
     pushToCloud();
   }
 
-  function toggleMyDay(id, e) {
+  // --- AÇÕES RÁPIDAS ---
+  function toggleToday(id, e) {
     e.stopPropagation();
     const t = tasks.find(x => x.id === id);
     if (!t) return;
@@ -732,10 +925,9 @@
     const t = tasks.find(x => x.id === id);
     if (!t) return;
 
-    // Verifica bloqueio por dependência
     if (!t.completed && isTaskBlocked(t)) {
       const pred = tasks.find(x => x.id === t.dependsOn);
-      showToast(`🔒 Bloqueada! Conclua primeiro: "${pred ? pred.title : 'Tarefa anterior'}"`);
+      showToast(`Bloqueada por: "${pred ? pred.title : "tarefa anterior"}"`);
       renderAll();
       return;
     }
@@ -743,7 +935,6 @@
     t.completed = !t.completed;
     t.completedAt = t.completed ? new Date().toISOString() : null;
 
-    // Gera próxima ocorrência se for recorrente e acabou de ser concluída
     if (t.completed && t.recurrence && t.recurrence.mode !== "none") {
       spawnNextRecurrence(t);
     }
@@ -754,62 +945,51 @@
 
   function spawnNextRecurrence(task) {
     const rec = task.recurrence;
-    let baseDate = new Date();
-
-    if (rec.mode === "calendar" && task.dueDate) {
-      baseDate = new Date(task.dueDate);
-    } else if (rec.mode === "completion" && task.dueDate) {
+    let base = (rec.mode === "calendar" && task.dueDate) ? new Date(task.dueDate) : new Date();
+    if (rec.mode === "completion" && task.dueDate) {
       const orig = new Date(task.dueDate);
-      baseDate.setHours(orig.getHours(), orig.getMinutes(), 0, 0);
+      base.setHours(orig.getHours(), orig.getMinutes(), 0, 0);
     }
 
-    const nextDate = new Date(baseDate);
+    const next = new Date(base);
     const interval = parseInt(rec.interval || 1, 10);
 
-    if (rec.mode === "completion" || rec.type === "custom_days") {
-      nextDate.setDate(nextDate.getDate() + interval);
-    } else if (rec.type === "daily") {
-      nextDate.setDate(nextDate.getDate() + 1);
-    } else if (rec.type === "weekly") {
-      nextDate.setDate(nextDate.getDate() + 7);
-    } else if (rec.type === "monthly") {
-      nextDate.setMonth(nextDate.getMonth() + 1);
-    } else if (rec.type === "yearly") {
-      nextDate.setFullYear(nextDate.getFullYear() + 1);
-    }
+    if (rec.mode === "completion") next.setDate(next.getDate() + interval);
+    else if (rec.type === "daily") next.setDate(next.getDate() + 1);
+    else if (rec.type === "weekly") next.setDate(next.getDate() + 7);
+    else if (rec.type === "monthly") next.setMonth(next.getMonth() + 1);
+    else if (rec.type === "yearly") next.setFullYear(next.getFullYear() + 1);
 
-    const nextDueStr = toLocalInputString(nextDate);
-    let nextAlertStr = "";
+    const nextDue = toLocalInput(next);
+    let nextAlert = "";
     if (task.alertTime && task.dueDate) {
-      const diffMs = new Date(task.alertTime) - new Date(task.dueDate);
-      nextAlertStr = toLocalInputString(new Date(nextDate.getTime() + diffMs));
+      nextAlert = toLocalInput(new Date(next.getTime() + (new Date(task.alertTime) - new Date(task.dueDate))));
     } else if (task.alertTime) {
-      nextAlertStr = nextDueStr;
+      nextAlert = nextDue;
     }
 
     const clone = JSON.parse(JSON.stringify(task));
     clone.id = "t_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6);
     clone.completed = false;
     clone.completedAt = null;
-    clone.dueDate = nextDueStr;
-    clone.alertTime = nextAlertStr;
+    clone.dueDate = nextDue;
+    clone.alertTime = nextAlert;
     clone.alertTriggered = false;
     clone.subtasks = (clone.subtasks || []).map(s => ({ ...s, completed: false }));
 
     tasks.unshift(clone);
-    showToast(`🔁 Próxima ocorrência criada para ${formatDateBR(nextDueStr)}`);
+    showToast(`Próxima ocorrência: ${formatDate(nextDue)}`);
   }
 
-  // --- DEPENDÊNCIAS & ORDENAÇÃO ---
-  function isTaskBlocked(task) {
-    if (!task.dependsOn) return false;
-    const pred = tasks.find(x => x.id === task.dependsOn);
+  // --- RENDERIZAÇÃO ---
+  function isTaskBlocked(t) {
+    if (!t.dependsOn) return false;
+    const pred = tasks.find(x => x.id === t.dependsOn);
     return pred ? !pred.completed : false;
   }
 
-  function sortTasksByPriorityAndDue(list) {
+  function sortTasks(list) {
     return [...list].sort((a, b) => {
-      if (a.completed !== b.completed) return a.completed ? 1 : -1;
       if (a.priority !== b.priority) return a.priority - b.priority;
       if (a.dueDate && b.dueDate) return new Date(a.dueDate) - new Date(b.dueDate);
       if (a.dueDate) return -1;
@@ -818,124 +998,88 @@
     });
   }
 
-  // --- RENDERIZAÇÃO DA UI ---
   function renderAll() {
-    updateTagFilterOptions();
+    const todayTasks = sortTasks(tasks.filter(t => !t.completed && t.isMyDay));
+    const generalTasks = sortTasks(tasks.filter(t => !t.completed && !t.isMyDay));
+    const doneTasks = tasks.filter(t => t.completed);
 
-    const myDayTasks = sortTasksByPriorityAndDue(tasks.filter(t => t.isMyDay && !t.completed));
-    document.getElementById("myDayCount").textContent = myDayTasks.length;
-    document.getElementById("myDayList").innerHTML = myDayTasks.length
-      ? myDayTasks.map(renderTaskHTML).join("")
-      : `<div style="color:var(--text-muted);font-size:0.85rem;">Nenhuma tarefa destacada para hoje. Clique na estrela (☆) em qualquer tarefa abaixo para trazê-la para cá.</div>`;
+    document.getElementById("todayCount").textContent = todayTasks.length;
+    document.getElementById("todayList").innerHTML = todayTasks.length
+      ? todayTasks.map(renderRow).join("")
+      : `<div class="empty-msg">Nenhuma tarefa para hoje.</div>`;
 
-    // Filtros do Backlog
-    const q = document.getElementById("filterSearch").value.toLowerCase();
-    const fPrio = document.getElementById("filterPriority").value;
-    const fTag = document.getElementById("filterTag").value;
-    const fDue = document.getElementById("filterDue").value;
-    const hideBlocked = document.getElementById("filterHideBlocked").checked;
-    const showCompleted = document.getElementById("filterShowCompleted").checked;
+    document.getElementById("tasksCount").textContent = generalTasks.length;
+    document.getElementById("generalList").innerHTML = generalTasks.length
+      ? generalTasks.map(renderRow).join("")
+      : `<div class="empty-msg">Nenhuma tarefa pendente.</div>`;
 
-    const now = new Date();
-    const todayStr = now.toISOString().slice(0, 10);
-
-    let filtered = tasks.filter(t => {
-      if (!showCompleted && t.completed) return false;
-      if (hideBlocked && isTaskBlocked(t)) return false;
-      if (fPrio && String(t.priority) !== fPrio) return false;
-      if (fTag && !(t.tags || []).includes(fTag)) return false;
-      if (q && !t.title.toLowerCase().includes(q) && !(t.notes || "").toLowerCase().includes(q)) return false;
-      if (fDue === "overdue") {
-        if (!t.dueDate || new Date(t.dueDate) >= now || t.completed) return false;
-      }
-      if (fDue === "today") {
-        if (!t.dueDate || !t.dueDate.startsWith(todayStr)) return false;
-      }
-      return true;
-    });
-
-    filtered = sortTasksByPriorityAndDue(filtered);
-    document.getElementById("backlogCount").textContent = filtered.length;
-    document.getElementById("backlogList").innerHTML = filtered.length
-      ? filtered.map(renderTaskHTML).join("")
-      : `<div style="color:var(--text-muted);font-size:0.85rem;">Nenhuma tarefa encontrada com os filtros atuais.</div>`;
+    const compArea = document.getElementById("completedArea");
+    if (doneTasks.length > 0) {
+      compArea.style.display = "flex";
+      document.getElementById("toggleCompletedBtn").textContent =
+        `${showCompleted ? "▾ Ocultar" : "▸ Mostrar"} concluídas (${doneTasks.length})`;
+      const compList = document.getElementById("completedList");
+      compList.style.display = showCompleted ? "flex" : "none";
+      compList.innerHTML = showCompleted ? doneTasks.map(renderRow).join("") : "";
+    } else {
+      compArea.style.display = "none";
+    }
   }
 
-  function renderTaskHTML(t) {
+  function toggleShowCompleted() {
+    showCompleted = !showCompleted;
+    renderAll();
+  }
+
+  function renderRow(t) {
     const blocked = isTaskBlocked(t);
     const pred = blocked ? tasks.find(x => x.id === t.dependsOn) : null;
-    const prioLabels = { 1: "P1", 2: "P2", 3: "P3", 4: "P4" };
+    const metas = [];
 
-    // Status de Prazo
-    let dueBadge = "";
+    if (blocked) {
+      metas.push(`<span class="meta-blocked">🔒 ${escapeHtml(pred ? pred.title : "Bloqueada")}</span>`);
+    }
     if (t.dueDate) {
-      const dueObj = new Date(t.dueDate);
+      const d = new Date(t.dueDate);
       const now = new Date();
       const isToday = t.dueDate.slice(0, 10) === now.toISOString().slice(0, 10);
-      const isOverdue = !t.completed && dueObj < now;
-      const cls = isOverdue ? "overdue" : (isToday ? "today" : "");
-      dueBadge = `<span class="badge ${cls}">📅 ${formatDateBR(t.dueDate)}</span>`;
+      const isOverdue = !t.completed && d < now;
+      const cls = isOverdue ? "meta-overdue" : (isToday ? "meta-today" : "");
+      metas.push(`<span class="${cls}">${formatDate(t.dueDate)}</span>`);
     }
-
-    // Progresso Subtarefas
-    let subBadge = "";
     if (t.subtasks && t.subtasks.length > 0) {
       const done = t.subtasks.filter(s => s.completed).length;
-      subBadge = `<span class="badge">☑️ ${done}/${t.subtasks.length}</span>`;
+      metas.push(`<span>${done}/${t.subtasks.length}</span>`);
     }
-
-    const alertBadge = t.alertType === "alarm"
-      ? `<span class="badge">⏰ Despertador</span>`
-      : (t.alertType === "notification" ? `<span class="badge">🔔 Alerta</span>` : "");
-
-    const recBadge = (t.recurrence && t.recurrence.mode !== "none") ? `<span class="badge">🔁 Recorrente</span>` : "";
-    const attachBadge = (t.attachments && t.attachments.length) ? `<span class="badge">📎 ${t.attachments.length}</span>` : "";
-    const notesBadge = t.notes ? `<span class="badge">📝</span>` : "";
-    const blockedBadge = blocked ? `<span class="badge blocked-badge">🔒 Bloqueada por: ${escapeHtml(pred ? pred.title : "Anterior")}</span>` : "";
-    const tagsHTML = (t.tags || []).map(tag => `<span class="badge tag">#${escapeHtml(tag)}</span>`).join("");
+    if (t.alertType === "alarm") metas.push(`<span>⏰</span>`);
+    else if (t.alertType === "notification") metas.push(`<span>🔔</span>`);
+    if (t.recurrence && t.recurrence.mode !== "none") metas.push(`<span>🔁</span>`);
+    if (t.attachments && t.attachments.length) metas.push(`<span>📎 ${t.attachments.length}</span>`);
+    if (t.notes) metas.push(`<span>📝</span>`);
+    (t.tags || []).forEach(tag => metas.push(`<span class="meta-tag">#${escapeHtml(tag)}</span>`));
 
     return `
-      <div class="task-item p-${t.priority} ${t.completed ? "completed" : ""} ${blocked ? "blocked" : ""}">
-        <button class="btn-myday ${t.isMyDay ? "active" : ""}" onclick="toggleMyDay('${t.id}', event)" title="Alternar em Tarefas do Dia">
+      <div class="task-row p-${t.priority} ${t.completed ? "completed" : ""} ${blocked ? "blocked" : ""}">
+        <input type="checkbox" class="task-check" ${t.completed ? "checked" : ""} onclick="toggleComplete('${t.id}', event)" />
+        <div class="task-content" onclick="openEditModal('${t.id}')">
+          <div class="task-title">${escapeHtml(t.title)}</div>
+          <div class="task-submeta">${metas.join(" · ")}</div>
+        </div>
+        <button type="button" class="star-btn ${t.isMyDay ? "active" : ""}" onclick="toggleToday('${t.id}', event)" title="${t.isMyDay ? "Remover de Hoje" : "Mover para Hoje"}">
           ${t.isMyDay ? "★" : "☆"}
         </button>
-        <input type="checkbox" class="task-check" ${t.completed ? "checked" : ""} onclick="toggleComplete('${t.id}', event)" />
-        <div class="task-body" onclick="openDrawer('${t.id}')">
-          <div class="task-title">${escapeHtml(t.title)}</div>
-          <div class="task-meta">
-            <span class="badge">${prioLabels[t.priority]}</span>
-            ${blockedBadge}
-            ${dueBadge}
-            ${subBadge}
-            ${alertBadge}
-            ${recBadge}
-            ${attachBadge}
-            ${notesBadge}
-            ${tagsHTML}
-          </div>
-        </div>
       </div>
     `;
   }
 
-  function updateTagFilterOptions() {
-    const select = document.getElementById("filterTag");
-    const current = select.value;
-    const allTags = new Set();
-    tasks.forEach(t => (t.tags || []).forEach(tag => allTags.add(tag)));
-    select.innerHTML = `<option value="">Todas Etiquetas</option>` +
-      Array.from(allTags).sort().map(tag => `<option value="${escapeHtml(tag)}">#${escapeHtml(tag)}</option>`).join("");
-    select.value = current;
-  }
-
-  // --- PAINEL LATERAL (DRAWER) ---
-  function openDrawer(id) {
+  // --- EDIÇÃO E DETALHES ---
+  function openEditModal(id) {
     const t = tasks.find(x => x.id === id);
     if (!t) return;
     currentEditId = id;
 
-    document.getElementById("editId").value = t.id;
     document.getElementById("editTitle").value = t.title;
+    document.getElementById("editIsToday").checked = !!t.isMyDay;
     document.getElementById("editPriority").value = t.priority;
     document.getElementById("editDue").value = t.dueDate || "";
     document.getElementById("editAlertType").value = t.alertType || "none";
@@ -943,66 +1087,48 @@
     document.getElementById("editTags").value = (t.tags || []).join(", ");
     document.getElementById("editNotes").value = t.notes || "";
 
-    // Popula seletor de dependências (evitando a própria tarefa)
-    const depSelect = document.getElementById("editDependsOn");
-    depSelect.innerHTML = `<option value="">Nenhuma (Livre)</option>` +
-      tasks.filter(x => x.id !== t.id && !x.completed)
-        .map(x => `<option value="${x.id}">${escapeHtml(x.title)}</option>`).join("");
-    depSelect.value = t.dependsOn || "";
+    const depSel = document.getElementById("editDependsOn");
+    depSel.innerHTML = `<option value="">Nenhuma</option>` +
+      tasks.filter(x => x.id !== t.id && !x.completed).map(x => `<option value="${x.id}">${escapeHtml(x.title)}</option>`).join("");
+    depSel.value = t.dependsOn || "";
 
-    // Recorrência
     const rec = t.recurrence || { mode: "none", type: "daily", interval: 1 };
     document.getElementById("editRecMode").value = rec.mode;
     document.getElementById("editRecType").value = rec.type;
     document.getElementById("editRecInterval").value = rec.interval || 1;
-    toggleRecurrenceFields();
+    toggleEditRecFields();
 
-    renderSubtasksList(t);
-    renderAttachmentsList(t);
-    switchMdTab("write");
-
-    document.getElementById("editOverlay").classList.add("open");
+    renderSubtasks(t);
+    renderAttachments(t);
+    setMdMode("write");
+    openModal("editModal");
   }
 
-  function closeDrawer() {
-    document.getElementById("editOverlay").classList.remove("open");
-    currentEditId = null;
-  }
-
-  function closeDrawerOnBackdrop(e) {
-    if (e.target.id === "editOverlay") closeDrawer();
-  }
-
-  function toggleRecurrenceFields() {
+  function toggleEditRecFields() {
     const mode = document.getElementById("editRecMode").value;
-    const type = document.getElementById("editRecType").value;
-    document.getElementById("editRecType").style.display = mode === "calendar" ? "block" : "none";
-    document.getElementById("recIntervalWrap").style.display =
-      (mode === "completion" || (mode === "calendar" && type === "custom_days")) ? "block" : "none";
+    document.getElementById("editRecTypeWrap").style.display = mode === "calendar" ? "flex" : "none";
+    document.getElementById("editRecIntervalWrap").style.display = mode === "completion" ? "flex" : "none";
   }
 
-  function saveDrawerChanges() {
+  function saveEditChanges() {
     const t = tasks.find(x => x.id === currentEditId);
     if (!t) return;
 
     t.title = document.getElementById("editTitle").value.trim() || t.title;
+    t.isMyDay = document.getElementById("editIsToday").checked;
     t.priority = parseInt(document.getElementById("editPriority").value, 10);
     t.dueDate = document.getElementById("editDue").value;
     t.alertType = document.getElementById("editAlertType").value;
 
-    const newAlertTime = document.getElementById("editAlertTime").value;
-    if (newAlertTime !== t.alertTime) {
-      t.alertTime = newAlertTime;
+    const newAlert = document.getElementById("editAlertTime").value;
+    if (newAlert !== t.alertTime) {
+      t.alertTime = newAlert;
       t.alertTriggered = false;
     }
 
     t.dependsOn = document.getElementById("editDependsOn").value;
-    t.tags = document.getElementById("editTags").value
-      .split(",")
-      .map(s => s.trim().replace(/^#/, ""))
-      .filter(Boolean);
+    t.tags = document.getElementById("editTags").value.split(",").map(s => s.trim().replace(/^#/, "")).filter(Boolean);
     t.notes = document.getElementById("editNotes").value;
-
     t.recurrence = {
       mode: document.getElementById("editRecMode").value,
       type: document.getElementById("editRecType").value,
@@ -1013,65 +1139,63 @@
     pushToCloud();
   }
 
-  function deleteCurrentTask() {
+  function deleteTask() {
     if (!currentEditId) return;
     tasks = tasks.filter(x => x.id !== currentEditId);
-    closeDrawer();
+    closeModal("editModal");
     renderAll();
     pushToCloud();
   }
 
   // --- SUBTAREFAS ---
-  function renderSubtasksList(t) {
-    const box = document.getElementById("subtasksContainer");
-    box.innerHTML = (t.subtasks || []).map((s, idx) => `
-      <div class="subtask-item">
-        <div class="subtask-left">
-          <input type="checkbox" ${s.completed ? "checked" : ""} onchange="toggleSubtask(${idx})" />
-          <span style="${s.completed ? 'text-decoration:line-through;opacity:0.6;' : ''}">${escapeHtml(s.title)}</span>
-        </div>
-        <button type="button" onclick="removeSubtask(${idx})" style="padding:2px 7px;">✕</button>
+  function renderSubtasks(t) {
+    document.getElementById("subtasksList").innerHTML = (t.subtasks || []).map((s, idx) => `
+      <div class="item-chip">
+        <label class="check-inline" style="flex:1;">
+          <input type="checkbox" ${s.completed ? "checked" : ""} onchange="toggleSub(${idx})" />
+          <span style="${s.completed ? "text-decoration:line-through;opacity:0.6;" : ""}">${escapeHtml(s.title)}</span>
+        </label>
+        <button type="button" class="close-x" onclick="removeSub(${idx})">✕</button>
       </div>
     `).join("");
   }
 
   function addSubtask() {
-    const input = document.getElementById("newSubtaskInput");
-    const val = input.value.trim();
+    const inp = document.getElementById("newSubInput");
     const t = tasks.find(x => x.id === currentEditId);
-    if (!val || !t) return;
+    if (!inp.value.trim() || !t) return;
     t.subtasks = t.subtasks || [];
-    t.subtasks.push({ id: Date.now(), title: val, completed: false });
-    input.value = "";
-    renderSubtasksList(t);
+    t.subtasks.push({ id: Date.now(), title: inp.value.trim(), completed: false });
+    inp.value = "";
+    renderSubtasks(t);
     renderAll();
     pushToCloud();
   }
 
-  function toggleSubtask(idx) {
+  function toggleSub(idx) {
     const t = tasks.find(x => x.id === currentEditId);
     if (!t || !t.subtasks[idx]) return;
     t.subtasks[idx].completed = !t.subtasks[idx].completed;
-    renderSubtasksList(t);
+    renderSubtasks(t);
     renderAll();
     pushToCloud();
   }
 
-  function removeSubtask(idx) {
+  function removeSub(idx) {
     const t = tasks.find(x => x.id === currentEditId);
     if (!t) return;
     t.subtasks.splice(idx, 1);
-    renderSubtasksList(t);
+    renderSubtasks(t);
     renderAll();
     pushToCloud();
   }
 
-  // --- MARKDOWN RENDERER ---
-  function switchMdTab(mode) {
+  // --- MARKDOWN ---
+  function setMdMode(mode) {
     const ta = document.getElementById("editNotes");
-    const prev = document.getElementById("notesPreview");
-    document.getElementById("tabWrite").classList.toggle("active", mode === "write");
-    document.getElementById("tabPreview").classList.toggle("active", mode === "preview");
+    const prev = document.getElementById("editNotesPreview");
+    document.getElementById("btnMdWrite").classList.toggle("active", mode === "write");
+    document.getElementById("btnMdRead").classList.toggle("active", mode === "read");
 
     if (mode === "write") {
       ta.style.display = "block";
@@ -1079,58 +1203,48 @@
     } else {
       ta.style.display = "none";
       prev.style.display = "block";
-      prev.innerHTML = parseSimpleMarkdown(ta.value);
+      prev.innerHTML = renderMarkdown(ta.value);
     }
   }
 
-  function parseSimpleMarkdown(md) {
-    if (!md) return `<span style="color:var(--text-muted)">Nenhuma nota adicionada.</span>`;
+  function renderMarkdown(md) {
+    if (!md) return `<span style="color:var(--text-muted)">Sem notas.</span>`;
     let html = escapeHtml(md);
-    // Blocos de código
     html = html.replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>");
-    // Código inline
     html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
-    // Negrito e Itálico
     html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
     html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
-    // Links
     html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-    // Listas
     html = html.replace(/^\s*-\s+(.*)$/gm, "<li>$1</li>");
     html = html.replace(/(<li>.*<\/li>)/s, "<ul>$1</ul>");
-    // Quebras de linha
-    html = html.replace(/\n/g, "<br>");
-    return html;
+    return html.replace(/\n/g, "<br>");
   }
 
-  // --- UPLOAD DE ANEXOS PARA O GOOGLE DRIVE ---
-  function renderAttachmentsList(t) {
-    const box = document.getElementById("attachmentsContainer");
-    box.innerHTML = (t.attachments || []).map((a, idx) => `
-      <div class="attach-item">
+  // --- ANEXOS (GOOGLE DRIVE) ---
+  function renderAttachments(t) {
+    document.getElementById("attachmentsList").innerHTML = (t.attachments || []).map((a, idx) => `
+      <div class="item-chip">
         <a href="${a.url}" target="_blank" rel="noopener" style="color:#60a5fa; text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-          📄 ${escapeHtml(a.name)}
+          📎 ${escapeHtml(a.name)}
         </a>
-        <button type="button" onclick="removeAttachment(${idx})" style="padding:2px 7px;">✕</button>
+        <button type="button" class="close-x" onclick="removeAttachment(${idx})">✕</button>
       </div>
     `).join("");
   }
 
-  function handleFileUpload(e) {
+  function uploadAttachment(e) {
     const file = e.target.files[0];
     if (!file) return;
     if (!config.url || !config.token) {
-      showToast("⚠️ Configure a URL do Google Apps Script em 'Nuvem' para enviar anexos.");
+      showToast("Configure a Nuvem primeiro");
       e.target.value = "";
       return;
     }
-
-    const statusEl = document.getElementById("uploadStatus");
-    statusEl.textContent = "Enviando para o Google Drive...";
+    const msg = document.getElementById("uploadMsg");
+    msg.textContent = "Enviando para o Google Drive...";
 
     const reader = new FileReader();
     reader.onload = async () => {
-      const base64Data = reader.result.split(",")[1];
       try {
         const res = await fetch(config.url, {
           method: "POST",
@@ -1140,7 +1254,7 @@
             action: "uploadFile",
             fileName: file.name,
             mimeType: file.type || "application/octet-stream",
-            base64Data
+            base64Data: reader.result.split(",")[1]
           })
         });
         const data = await res.json();
@@ -1149,16 +1263,16 @@
           if (t) {
             t.attachments = t.attachments || [];
             t.attachments.push(data.file);
-            renderAttachmentsList(t);
+            renderAttachments(t);
             renderAll();
             pushToCloud();
           }
-          statusEl.textContent = "Anexo salvo no Drive ✓";
+          msg.textContent = "Salvo no Drive ✓";
         } else {
-          statusEl.textContent = "Erro no upload: " + (data.message || "");
+          msg.textContent = "Erro ao enviar.";
         }
-      } catch (err) {
-        statusEl.textContent = "Falha de conexão ao enviar arquivo.";
+      } catch {
+        msg.textContent = "Falha de conexão.";
       }
       e.target.value = "";
     };
@@ -1169,61 +1283,48 @@
     const t = tasks.find(x => x.id === currentEditId);
     if (!t) return;
     t.attachments.splice(idx, 1);
-    renderAttachmentsList(t);
+    renderAttachments(t);
     renderAll();
     pushToCloud();
   }
 
-  // --- MOTOR DE ALERTAS E DESPERTADOR SONORO ---
-  function checkAlertsLoop() {
+  // --- ALERTAS & DESPERTADOR ---
+  function checkAlerts() {
     const now = new Date();
     for (const t of tasks) {
       if (t.completed || t.alertTriggered || t.alertType === "none" || !t.alertTime) continue;
-      const target = new Date(t.alertTime);
-      if (now >= target) {
+      if (now >= new Date(t.alertTime)) {
         t.alertTriggered = true;
         pushToCloud();
         if (t.alertType === "notification") {
-          triggerSimpleNotification(t);
+          showToast(`🔔 ${t.title}`);
+          if ("Notification" in window && Notification.permission === "granted") {
+            new Notification("Lembrete", { body: t.title });
+          }
         } else if (t.alertType === "alarm") {
-          triggerAlarmModal(t);
+          triggerAlarm(t);
         }
       }
     }
   }
 
-  function triggerSimpleNotification(task) {
-    showToast(`🔔 Lembrete: ${task.title}`);
-    if ("Notification" in window && Notification.permission === "granted") {
-      new Notification("TaskFlow — Lembrete de Tarefa", {
-        body: task.title
-      });
-    }
-  }
-
-  function triggerAlarmModal(task) {
-    activeAlarmTaskId = task.id;
-    document.getElementById("alarmTaskTitle").textContent = task.title;
-    document.getElementById("alarmTaskMeta").textContent = task.dueDate
-      ? `Prazo: ${formatDateBR(task.dueDate)}`
-      : "Alarme programado";
-    document.getElementById("alarmModal").classList.add("open");
+  function triggerAlarm(task) {
+    activeAlarmId = task.id;
+    document.getElementById("alarmTitle").textContent = task.title;
+    document.getElementById("alarmDue").textContent = task.dueDate ? `Prazo: ${formatDate(task.dueDate)}` : "";
+    openModal("alarmModal");
 
     if ("Notification" in window && Notification.permission === "granted") {
-      new Notification("⏰ DESPERTADOR: " + task.title, { requireInteraction: true });
+      new Notification("⏰ Despertador: " + task.title, { requireInteraction: true });
     }
 
-    startAlarmBeep();
-  }
-
-  function startAlarmBeep() {
-    unlockAudio();
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
     stopAlarmBeep();
-    const playTone = () => {
-      if (!audioCtx) return;
+
+    const beep = () => {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
-      osc.type = "sine";
       osc.frequency.setValueAtTime(880, audioCtx.currentTime);
       osc.frequency.setValueAtTime(1100, audioCtx.currentTime + 0.15);
       gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
@@ -1233,73 +1334,48 @@
       osc.start();
       osc.stop(audioCtx.currentTime + 0.45);
     };
-    playTone();
-    alarmInterval = setInterval(playTone, 1200);
+    beep();
+    alarmTimer = setInterval(beep, 1200);
   }
 
   function stopAlarmBeep() {
-    if (alarmInterval) {
-      clearInterval(alarmInterval);
-      alarmInterval = null;
-    }
+    if (alarmTimer) { clearInterval(alarmTimer); alarmTimer = null; }
   }
 
-  function snoozeAlarm(minutes) {
+  function snoozeAlarm(mins) {
     stopAlarmBeep();
-    document.getElementById("alarmModal").classList.remove("open");
-    const t = tasks.find(x => x.id === activeAlarmTaskId);
+    closeModal("alarmModal");
+    const t = tasks.find(x => x.id === activeAlarmId);
     if (t) {
-      const next = new Date(Date.now() + minutes * 60000);
-      t.alertTime = toLocalInputString(next);
+      t.alertTime = toLocalInput(new Date(Date.now() + mins * 60000));
       t.alertTriggered = false;
       pushToCloud();
-      showToast(`💤 Alarme adiado por ${minutes} minutos.`);
+      showToast(`Adiado por ${mins} min`);
     }
-    activeAlarmTaskId = null;
+    activeAlarmId = null;
   }
 
   function dismissAlarm() {
     stopAlarmBeep();
-    document.getElementById("alarmModal").classList.remove("open");
-    activeAlarmTaskId = null;
+    closeModal("alarmModal");
+    activeAlarmId = null;
   }
 
-  function testAlarmSound() {
-    unlockAudio();
-    if ("Notification" in window && Notification.permission !== "granted") {
-      Notification.requestPermission();
-    }
-    triggerAlarmModal({ id: null, title: "Teste de Despertador Sonoro", dueDate: "" });
-  }
+  // --- AUXILIARES ---
+  function openModal(id) { document.getElementById(id).classList.add("open"); }
+  function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+  function closeOnBackdrop(e, id) { if (e.target.id === id) closeModal(id); }
 
-  // --- CONFIGURAÇÃO ---
-  function openConfigModal() {
-    document.getElementById("cfgUrl").value = config.url || "";
-    document.getElementById("cfgToken").value = config.token || "";
-    document.getElementById("configModal").classList.add("open");
-  }
-  function closeConfigModal() {
-    document.getElementById("configModal").classList.remove("open");
-  }
-  function saveConfig() {
-    config.url = document.getElementById("cfgUrl").value.trim();
-    config.token = document.getElementById("cfgToken").value.trim();
-    localStorage.setItem("tf_config", JSON.stringify(config));
-    closeConfigModal();
-    pullFromCloud();
-  }
-
-  // --- UTILITÁRIOS ---
-  function formatDateBR(isoStr) {
-    if (!isoStr) return "";
-    const d = new Date(isoStr);
+  function formatDate(iso) {
+    if (!iso) return "";
+    const d = new Date(iso);
     return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) + " " +
            d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
   }
 
-  function toLocalInputString(date) {
-    const pad = n => String(n).padStart(2, "0");
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  function toLocalInput(date) {
+    const p = n => String(n).padStart(2, "0");
+    return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())}T${p(date.getHours())}:${p(date.getMinutes())}`;
   }
 
   function escapeHtml(str) {
@@ -1312,8 +1388,8 @@
     const el = document.getElementById("toast");
     el.textContent = msg;
     el.style.display = "block";
-    clearTimeout(el._timer);
-    el._timer = setTimeout(() => { el.style.display = "none"; }, 3500);
+    clearTimeout(el._t);
+    el._t = setTimeout(() => { el.style.display = "none"; }, 3000);
   }
 </script>
 </body>
