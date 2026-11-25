@@ -8,23 +8,17 @@
     :root {
       --bg: #0b0f19;
       --surface: #131926;
-      --surface-hover: #1a2234;
+      --hover: #1a2234;
       --border: #1f2937;
       --text: #f3f4f6;
-      --text-muted: #9ca3af;
+      --muted: #9ca3af;
       --green: #16a34a;
-      --green-hover: #15803d;
-      --primary: #3b82f6;
-      --myday: #f59e0b;
-      --p1: #ef4444;
-      --p2: #f97316;
-      --p3: #3b82f6;
-      --p4: #4b5563;
-      --danger: #ef4444;
+      --green-h: #15803d;
+      --blue: #3b82f6;
+      --amber: #f59e0b;
+      --red: #ef4444;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg);
@@ -32,8 +26,6 @@
       line-height: 1.5;
       padding-bottom: 60px;
     }
-
-    /* Topo com "Foco Agora" centralizado na mesma linha dos botões */
     header {
       max-width: 720px;
       margin: 0 auto;
@@ -43,7 +35,6 @@
       align-items: center;
       gap: 8px;
     }
-
     .header-center {
       display: flex;
       align-items: center;
@@ -51,264 +42,926 @@
       gap: 8px;
       white-space: nowrap;
     }
-
-    .focus-heading {
-      font-size: 1.12rem;
-      font-weight: 700;
-      color: var(--myday);
-      letter-spacing: -0.01em;
-    }
-
-    .header-count {
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #6b7280;
-      display: inline-block;
-      flex-shrink: 0;
-      transition: background 0.2s;
-    }
+    .focus-heading { font-size: 1.12rem; font-weight: 700; color: var(--amber); }
+    .header-count { font-size: 0.82rem; color: var(--muted); font-weight: 600; }
+    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #6b7280; }
     .status-dot.ok { background: #22c55e; }
-    .status-dot.syncing { background: #f59e0b; }
-    .status-dot.err { background: #ef4444; }
+    .status-dot.syncing { background: var(--amber); }
+    .status-dot.err { background: var(--red); }
 
-    .top-actions {
-      justify-self: end;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      position: relative;
-    }
-
+    .top-actions { justify-self: end; display: flex; gap: 8px; position: relative; }
     .icon-btn {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--text);
-      font-size: 1.15rem;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
+      width: 38px; height: 38px; border-radius: 10px;
+      border: 1px solid var(--border); background: var(--surface); color: var(--text);
+      font-size: 1.15rem; display: inline-flex; align-items: center; justify-content: center;
       cursor: pointer;
-      transition: 0.15s;
     }
-    .icon-btn:hover { background: var(--surface-hover); }
+    .icon-btn:hover { background: var(--hover); }
+    .btn-add { background: var(--green); border-color: var(--green); color: #fff; font-size: 1.45rem; }
+    .btn-add:hover { background: var(--green-h); }
 
-    .icon-btn.btn-add {
-      background: var(--green);
-      border-color: var(--green);
-      color: #fff;
-      font-size: 1.45rem;
-      font-weight: 500;
-      line-height: 1;
-    }
-    .icon-btn.btn-add:hover { background: var(--green-hover); }
-
-    /* Menu Dropdown da Engrenagem */
     .gear-menu {
-      position: absolute;
-      top: 46px;
-      right: 0;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      min-width: 165px;
-      padding: 6px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-      display: none;
-      flex-direction: column;
-      gap: 2px;
-      z-index: 40;
+      position: absolute; top: 46px; right: 0;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+      min-width: 165px; padding: 6px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      display: none; flex-direction: column; gap: 2px; z-index: 40;
     }
     .gear-menu.open { display: flex; }
-
     .gear-menu button {
-      background: transparent;
-      border: none;
-      color: var(--text);
-      text-align: left;
-      padding: 10px 12px;
-      border-radius: 7px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      background: transparent; border: none; color: var(--text); text-align: left;
+      padding: 10px 12px; border-radius: 7px; font-size: 0.9rem; cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
     }
-    .gear-menu button:hover { background: var(--surface-hover); }
+    .gear-menu button:hover { background: var(--hover); }
 
-    /* Área Principal */
-    main {
-      max-width: 720px;
-      margin: 6px auto;
-      padding: 0 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
+    main { max-width: 720px; margin: 6px auto; padding: 0 18px; display: flex; flex-direction: column; gap: 24px; }
+    .list-section { display: flex; flex-direction: column; gap: 10px; }
+    .section-toggle, .completed-toggle {
+      background: transparent; border: none; color: var(--muted);
+      font-size: 0.85rem; font-weight: 600; cursor: pointer; align-self: flex-start; padding: 4px 2px;
     }
+    .section-toggle { text-transform: uppercase; letter-spacing: 0.05em; }
+    .section-toggle:hover, .completed-toggle:hover { color: var(--text); }
 
-    .list-section {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+    .task-list { display: flex; flex-direction: column; gap: 8px; }
+    .empty-msg { color: #4b5563; font-size: 0.88rem; padding: 6px 2px; }
 
-    /* Botão de colapsar/expandir (Tarefas e Concluídas) */
-    .section-toggle {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      cursor: pointer;
-      align-self: flex-start;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 2px;
-      transition: color 0.15s;
-    }
-    .section-toggle:hover { color: var(--text); }
-
-    .completed-toggle {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-size: 0.83rem;
-      cursor: pointer;
-      align-self: flex-start;
-      padding: 4px 2px;
-      transition: color 0.15s;
-    }
-    .completed-toggle:hover { color: var(--text); }
-
-    .task-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .empty-msg {
-      color: #4b5563;
-      font-size: 0.88rem;
-      padding: 6px 2px;
-    }
-
-    /* Cartão de Tarefa */
     .task-row {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--p4);
-      border-radius: 10px;
-      padding: 12px 14px;
-      display: flex;
-      align-items: center;
-      gap: 11px;
-      transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+      background: var(--surface); border: 1px solid var(--border); border-left: 3px solid #4b5563;
+      border-radius: 10px; padding: 12px 14px; display: flex; align-items: center; gap: 11px;
     }
-    .task-row:hover {
-      background: var(--surface-hover);
-      border-color: #374151;
-    }
-    .task-row.p-1 { border-left-color: var(--p1); }
-    .task-row.p-2 { border-left-color: var(--p2); }
-    .task-row.p-3 { border-left-color: var(--p3); }
-    .task-row.p-4 { border-left-color: var(--p4); }
+    .task-row:hover { background: var(--hover); border-color: #374151; }
+    .task-row.p-1 { border-left-color: var(--red); }
+    .task-row.p-2 { border-left-color: #f97316; }
+    .task-row.p-3 { border-left-color: var(--blue); }
     .task-row.blocked { opacity: 0.7; border-style: dashed; }
     .task-row.completed { opacity: 0.5; }
     .task-row.completed .task-title { text-decoration: line-through; }
 
-    /* Alça e estados de Drag & Drop (Foco Agora) */
     .drag-handle {
-      color: #4b5563;
-      cursor: grab;
-      font-size: 1rem;
-      line-height: 1;
-      padding: 4px 2px;
-      user-select: none;
-      touch-action: none;
-      flex-shrink: 0;
-      letter-spacing: -2px;
+      color: #4b5563; cursor: grab; font-size: 1rem; padding: 4px 2px;
+      user-select: none; touch-action: none; letter-spacing: -2px;
     }
-    .drag-handle:hover { color: var(--text-muted); }
-    .drag-handle:active { cursor: grabbing; }
+    .drag-handle:hover { color: var(--muted); }
+    .task-row.dragging { opacity: 0.4; border-color: var(--amber); }
+    .task-row.drag-over-top { border-top: 2px solid var(--amber); }
+    .task-row.drag-over-bottom { border-bottom: 2px solid var(--amber); }
 
-    .task-row.dragging {
-      opacity: 0.4;
-      border-color: var(--myday);
-    }
-    .task-row.drag-over-top {
-      border-top: 2px solid var(--myday);
-    }
-    .task-row.drag-over-bottom {
-      border-bottom: 2px solid var(--myday);
-    }
-
-    .task-check {
-      width: 19px;
-      height: 19px;
-      accent-color: var(--green);
-      cursor: pointer;
-      flex-shrink: 0;
-    }
-
-    .task-content {
-      flex: 1;
-      min-width: 0;
-      cursor: pointer;
-    }
-
-    .task-title {
-      font-size: 0.96rem;
-      font-weight: 500;
-      word-break: break-word;
-    }
-
-    .task-submeta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 3px;
-      font-size: 0.76rem;
-      color: var(--text-muted);
-    }
+    .task-check { width: 19px; height: 19px; accent-color: var(--green); cursor: pointer; flex-shrink: 0; }
+    .task-content { flex: 1; min-width: 0; cursor: pointer; }
+    .task-title { font-size: 0.96rem; font-weight: 500; word-break: break-word; }
+    .task-submeta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 3px; font-size: 0.76rem; color: var(--muted); }
     .task-submeta:empty { display: none; }
-
     .meta-overdue { color: #f87171; font-weight: 500; }
     .meta-today { color: #fbbf24; }
     .meta-blocked { color: #fca5a5; }
     .meta-tag { color: #60a5fa; }
 
-    .star-btn {
-      background: transparent;
-      border: none;
-      color: #4b5563;
-      font-size: 1.2rem;
-      cursor: pointer;
-      padding: 2px 4px;
-      line-height: 1;
-      transition: color 0.15s;
-    }
-    .star-btn:hover { color: var(--text-muted); }
-    .star-btn.active { color: var(--myday); }
+    .star-btn { background: transparent; border: none; color: #4b5563; font-size: 1.2rem; cursor: pointer; padding: 2px 4px; }
+    .star-btn.active { color: var(--amber); }
 
-    /* Modais */
     .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.75);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-      z-index: 6
+      position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+      display: none; align-items: center; justify-content: center; padding: 16px; z-index: 60;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-box {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+      width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto;
+      padding: 22px; display: flex; flex-direction: column; gap: 14px;
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; }
+    .close-x { background: transparent; border: none; color: var(--muted); font-size: 1.2rem; cursor: pointer; padding: 4px 8px; }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    label { font-size: 0.8rem; color: var(--muted); font-weight: 500; }
+    input[type="text"], input[type="number"], input[type="datetime-local"], select, textarea {
+      background: var(--bg); border: 1px solid var(--border); color: var(--text);
+      padding: 9px 11px; border-radius: 8px; font-size: 0.9rem; font-family: inherit; width: 100%;
+    }
+    textarea { min-height: 90px; resize: vertical; }
+    .check-inline { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; color: var(--text); cursor: pointer; }
+    details.advanced-box { border-top: 1px solid var(--border); padding-top: 10px; }
+    details.advanced-box summary { font-size: 0.83rem; color: var(--muted); cursor: pointer; margin-bottom: 10px; }
+    .advanced-fields { display: flex; flex-direction: column; gap: 12px; }
+
+    .btn {
+      background: var(--hover); border: 1px solid var(--border); color: var(--text);
+      padding: 9px 14px; border-radius: 8px; font-size: 0.88rem; font-weight: 500; cursor: pointer;
+    }
+    .btn-green { background: var(--green); border-color: var(--green); color: #fff; }
+    .btn-primary { background: var(--blue); border-color: var(--blue); color: #fff; }
+    .btn-danger { background: rgba(239,68,68,0.12); border-color: var(--red); color: #fca5a5; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
+
+    .item-chip {
+      display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg); border: 1px solid var(--border); padding: 6px 10px; border-radius: 7px; font-size: 0.85rem; gap: 8px;
+    }
+    .md-switch { display: flex; gap: 6px; }
+    .md-switch button {
+      background: var(--bg); border: 1px solid var(--border); color: var(--muted);
+      padding: 2px 8px; border-radius: 5px; font-size: 0.75rem; cursor: pointer;
+    }
+    .md-switch button.active { background: var(--blue); border-color: var(--blue); color: #fff; }
+    .md-view { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px; min-height: 90px; font-size: 0.88rem; }
+    .md-view a { color: #60a5fa; }
+    .md-view code { background: #1f2937; padding: 2px 5px; border-radius: 4px; }
+    .md-view pre { background: #070a12; padding: 8px; border-radius: 6px; overflow-x: auto; margin: 5px 0; }
+    .alarm-box { border: 2px solid var(--red); box-shadow: 0 0 35px rgba(239,68,68,0.45); }
+    .toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: #1f2937; border: 1px solid #374151; color: var(--text);
+      padding: 9px 16px; border-radius: 8px; font-size: 0.85rem; z-index: 90; display: none;
+    }
+    @media (max-width: 540px) { .field-row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<header>
+  <div></div>
+  <div class="header-center">
+    <span class="focus-heading">☀️ Foco Agora</span>
+    <span id="todayCount" class="header-count">0</span>
+    <span id="syncDot" class="status-dot" title="Modo Local"></span>
+  </div>
+  <div class="top-actions">
+    <button type="button" id="btnAddOpen" class="icon-btn btn-add" title="Nova Tarefa">+</button>
+    <button type="button" id="gearBtn" class="icon-btn" title="Opções">⚙️</button>
+    <div id="gearMenu" class="gear-menu">
+      <button type="button" id="menuCloud">☁️ Nuvem</button>
+      <button type="button" id="menuSync">🔄 Sincronizar</button>
+    </div>
+  </div>
+</header>
+
+<main id="appMain">
+  <section class="list-section">
+    <div id="todayList" class="task-list"></div>
+  </section>
+
+  <section class="list-section">
+    <button type="button" id="toggleTasksBtn" class="section-toggle">▾ Tarefas (0)</button>
+    <div id="generalList" class="task-list"></div>
+  </section>
+
+  <div id="completedArea" style="display:none; flex-direction:column; gap:10px;">
+    <button type="button" id="toggleCompletedBtn" class="completed-toggle">▸ Mostrar concluídas (0)</button>
+    <div id="completedList" class="task-list" style="display:none;"></div>
+  </div>
+</main>
+
+<!-- Modal: Nova Tarefa -->
+<div id="createModal" class="modal-backdrop" data-close="createModal">
+  <form id="createForm" class="modal-box">
+    <div class="modal-header">
+      <h3>Nova Tarefa</h3>
+      <button type="button" class="close-x" data-close="createModal">✕</button>
+    </div>
+    <div class="field">
+      <label>Título</label>
+      <input type="text" id="newTitle" placeholder="O que precisa ser feito?" required />
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Prioridade</label>
+        <select id="newPriority">
+          <option value="1">🔴 P1 - Urgente</option>
+          <option value="2">🟠 P2 - Alta</option>
+          <option value="3" selected>🔵 P3 - Média</option>
+          <option value="4">⚪ P4 - Baixa</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Prazo</label>
+        <input type="datetime-local" id="newDue" />
+      </div>
+    </div>
+    <label class="check-inline">
+      <input type="checkbox" id="newIsToday" checked /> Adicionar em <strong>Foco Agora</strong>
+    </label>
+    <details class="advanced-box">
+      <summary>+ Mais detalhes (Alerta, Recorrência, Dependência, Tags, Notas)</summary>
+      <div class="advanced-fields">
+        <div class="field-row">
+          <div class="field">
+            <label>Alerta / Despertador</label>
+            <select id="newAlertType">
+              <option value="none">Sem alerta</option>
+              <option value="notification">🔔 Notificação</option>
+              <option value="alarm">⏰ Despertador sonoro</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Horário do Alerta</label>
+            <input type="datetime-local" id="newAlertTime" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Recorrência</label>
+            <select id="newRecMode">
+              <option value="none">Não se repete</option>
+              <option value="calendar">Por calendário</option>
+              <option value="completion">Dias após conclusão</option>
+            </select>
+          </div>
+          <div class="field" id="newRecTypeWrap" style="display:none;">
+            <label>Frequência</label>
+            <select id="newRecType">
+              <option value="daily">Diária</option>
+              <option value="weekly">Semanal</option>
+              <option value="monthly">Mensal</option>
+              <option value="yearly">Anual</option>
+            </select>
+          </div>
+          <div class="field" id="newRecIntervalWrap" style="display:none;">
+            <label>Dias após concluir</label>
+            <input type="number" id="newRecInterval" min="1" value="1" />
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Bloqueada por</label>
+            <select id="newDependsOn"><option value="">Nenhuma</option></select>
+          </div>
+          <div class="field">
+            <label>Etiquetas (vírgula)</label>
+            <input type="text" id="newTags" placeholder="trabalho, casa" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Notas (Markdown)</label>
+          <textarea id="newNotes" placeholder="Detalhes, links ou passos..."></textarea>
+        </div>
+      </div>
+    </details>
+    <div class="modal-footer">
+      <button type="button" class="btn" data-close="createModal">Cancelar</button>
+      <button type="submit" class="btn btn-green">Salvar Tarefa</button>
+    </div>
+  </form>
+</div>
+
+<!-- Modal: Editar Tarefa -->
+<div id="editModal" class="modal-backdrop" data-close="editModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>Detalhes da Tarefa</h3>
+      <button type="button" class="close-x" data-close="editModal">✕</button>
+    </div>
+    <div class="field">
+      <label>Título</label>
+      <input type="text" id="editTitle" />
+    </div>
+    <label class="check-inline">
+      <input type="checkbox" id="editIsToday" /> Exibir em <strong>Foco Agora</strong>
+    </label>
+    <div class="field-row">
+      <div class="field">
+        <label>Prioridade</label>
+        <select id="editPriority">
+          <option value="1">🔴 P1 - Urgente</option>
+          <option value="2">🟠 P2 - Alta</option>
+          <option value="3">🔵 P3 - Média</option>
+          <option value="4">⚪ P4 - Baixa</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Prazo</label>
+        <input type="datetime-local" id="editDue" />
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Tipo de Alerta</label>
+        <select id="editAlertType">
+          <option value="none">Sem alerta</option>
+          <option value="notification">🔔 Notificação</option>
+          <option value="alarm">⏰ Despertador sonoro</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Horário do Alerta</label>
+        <input type="datetime-local" id="editAlertTime" />
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Bloqueada por</label>
+        <select id="editDependsOn"><option value="">Nenhuma</option></select>
+      </div>
+      <div class="field">
+        <label>Etiquetas</label>
+        <input type="text" id="editTags" placeholder="ex: trabalho, urgente" />
+      </div>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>Recorrência</label>
+        <select id="editRecMode">
+          <option value="none">Não se repete</option>
+          <option value="calendar">Por calendário</option>
+          <option value="completion">Dias após conclusão</option>
+        </select>
+      </div>
+      <div class="field" id="editRecTypeWrap" style="display:none;">
+        <label>Frequência</label>
+        <select id="editRecType">
+          <option value="daily">Diária</option>
+          <option value="weekly">Semanal</option>
+          <option value="monthly">Mensal</option>
+          <option value="yearly">Anual</option>
+        </select>
+      </div>
+      <div class="field" id="editRecIntervalWrap" style="display:none;">
+        <label>Dias após concluir</label>
+        <input type="number" id="editRecInterval" min="1" value="1" />
+      </div>
+    </div>
+    <div class="field">
+      <label>Subtarefas</label>
+      <div style="display:flex; gap:6px;">
+        <input type="text" id="newSubInput" placeholder="Nova subtarefa..." />
+        <button type="button" id="btnAddSub" class="btn">+</button>
+      </div>
+      <div id="subtasksList" style="display:flex; flex-direction:column; gap:5px; margin-top:5px;"></div>
+    </div>
+    <div class="field">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <label>Notas (Markdown)</label>
+        <div class="md-switch">
+          <button type="button" id="btnMdWrite" class="active">Editar</button>
+          <button type="button" id="btnMdRead">Visualizar</button>
+        </div>
+      </div>
+      <textarea id="editNotes"></textarea>
+      <div id="editNotesPreview" class="md-view" style="display:none;"></div>
+    </div>
+    <div class="field">
+      <label>Anexos (Google Drive)</label>
+      <input type="file" id="editFileInput" />
+      <small id="uploadMsg" style="color:var(--amber);"></small>
+      <div id="attachmentsList" style="display:flex; flex-direction:column; gap:5px; margin-top:5px;"></div>
+    </div>
+    <div class="modal-footer" style="justify-content:space-between; border-top:1px solid var(--border); padding-top:12px;">
+      <button type="button" id="btnDeleteTask" class="btn btn-danger">Excluir</button>
+      <button type="button" class="btn btn-primary" data-close="editModal">Concluir</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Nuvem -->
+<div id="configModal" class="modal-backdrop" data-close="configModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>☁️ Configuração da Nuvem</h3>
+      <button type="button" class="close-x" data-close="configModal">✕</button>
+    </div>
+    <div class="field">
+      <label>URL do Web App (Google Apps Script)</label>
+      <input type="text" id="cfgUrl" placeholder="https://script.google.com/macros/s/.../exec" />
+    </div>
+    <div class="field">
+      <label>Token Secreto</label>
+      <input type="text" id="cfgToken" placeholder="Sua senha configurada no script" />
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn" data-close="configModal">Cancelar</button>
+      <button type="button" id="btnSaveCloud" class="btn btn-green">Salvar e Sincronizar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Despertador -->
+<div id="alarmModal" class="modal-backdrop">
+  <div class="modal-box alarm-box">
+    <div style="color:#fca5a5; font-weight:700; font-size:1.1rem;">⏰ DESPERTADOR</div>
+    <div id="alarmTitle" style="font-size:1.15rem; font-weight:600;"></div>
+    <div id="alarmDue" style="font-size:0.85rem; color:var(--muted);"></div>
+    <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
+      <button type="button" id="btnSnooze5" class="btn">Adiar 5 min</button>
+      <button type="button" id="btnSnooze15" class="btn">Adiar 15 min</button>
+      <button type="button" id="btnDismissAlarm" class="btn btn-green">Dispensar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+(() => {
+  let tasks = JSON.parse(localStorage.getItem("tf_tasks") || "[]");
+  let config = JSON.parse(localStorage.getItem("tf_config") || '{"url":"","token":""}');
+  let currentEditId = null, showTasks = true, showCompleted = false;
+  let audioCtx = null, alarmTimer = null, activeAlarmId = null;
+  let draggedId = null, dropTargetId = null, dropAfter = false;
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s || "").replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+  const fmtDate = iso => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    return d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"}) + " " + d.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+  };
+  const toLocal = d => {
+    const p = n => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+  };
+  const toast = msg => {
+    const el = $("toast"); el.textContent = msg; el.style.display = "block";
+    clearTimeout(el._t); el._t = setTimeout(() => el.style.display = "none", 3000);
+  };
+  const openModal = id => $(id).classList.add("open");
+  const closeModal = id => $(id).classList.remove("open");
+
+  function setSyncDot(state, title) {
+    const d = $("syncDot"); d.className = "status-dot " + state; d.title = title;
+  }
+
+  async function pullFromCloud() {
+    if (!config.url || !config.token) return;
+    setSyncDot("syncing", "Sincronizando...");
+    try {
+      const res = await fetch(config.url, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ token: config.token, action: "getAll" })
+      });
+      const data = await res.json();
+      if (data.status === "ok" && Array.isArray(data.tasks)) {
+        tasks = data.tasks;
+        localStorage.setItem("tf_tasks", JSON.stringify(tasks));
+        renderAll();
+        setSyncDot("ok", "Sincronizado");
+        toast("Sincronizado ✓");
+      } else {
+        setSyncDot("err", data.message || "Erro");
+        toast("Erro: " + (data.message || "Falha ao sincronizar"));
+      }
+    } catch {
+      setSyncDot("err", "Offline");
+      toast("Sem conexão (modo local)");
+    }
+  }
+
+  async function pushToCloud() {
+    localStorage.setItem("tf_tasks", JSON.stringify(tasks));
+    if (!config.url || !config.token) return setSyncDot("", "Modo Local");
+    setSyncDot("syncing", "Salvando...");
+    try {
+      const res = await fetch(config.url, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ token: config.token, action: "syncAll", tasks })
+      });
+      const data = await res.json();
+      setSyncDot(data.status === "ok" ? "ok" : "err", data.status === "ok" ? "Sincronizado" : "Erro");
+    } catch { setSyncDot("err", "Offline"); }
+  }
+
+  const isBlocked = t => {
+    if (!t.dependsOn) return false;
+    const p = tasks.find(x => x.id === t.dependsOn);
+    return p ? !p.completed : false;
+  };
+  const minFocusOrder = () => {
+    const arr = tasks.filter(t => !t.completed && t.isMyDay && typeof t.focusOrder === "number").map(t => t.focusOrder);
+    return arr.length ? Math.min(...arr) - 1 : 0;
+  };
+  const sortGeneral = list => [...list].sort((a, b) => {
+    if (a.priority !== b.priority) return a.priority - b.priority;
+    if (a.dueDate && b.dueDate) return new Date(a.dueDate) - new Date(b.dueDate);
+    return a.dueDate ? -1 : (b.dueDate ? 1 : 0);
+  });
+  const sortFocus = list => [...list].sort((a, b) => {
+    const ah = typeof a.focusOrder === "number", bh = typeof b.focusOrder === "number";
+    if (ah && bh && a.focusOrder !== b.focusOrder) return a.focusOrder - b.focusOrder;
+    if (ah !== bh) return ah ? -1 : 1;
+    return sortGeneral([a, b])[0] === a ? -1 : 1;
+  });
+
+  function renderAll() {
+    const focus = sortFocus(tasks.filter(t => !t.completed && t.isMyDay));
+    const general = sortGeneral(tasks.filter(t => !t.completed && !t.isMyDay));
+    const done = tasks.filter(t => t.completed);
+
+    $("todayCount").textContent = focus.length;
+    $("todayList").innerHTML = focus.length ? focus.map(t => renderRow(t, true)).join("") : `<div class="empty-msg">Nenhuma tarefa em Foco Agora.</div>`;
+
+    $("toggleTasksBtn").textContent = `${showTasks ? "▾" : "▸"} Tarefas (${general.length})`;
+    $("generalList").style.display = showTasks ? "flex" : "none";
+    $("generalList").innerHTML = showTasks ? (general.length ? general.map(t => renderRow(t, false)).join("") : `<div class="empty-msg">Nenhuma tarefa pendente.</div>`) : "";
+
+    if (done.length) {
+      $("completedArea").style.display = "flex";
+      $("toggleCompletedBtn").textContent = `${showCompleted ? "▾ Ocultar" : "▸ Mostrar"} concluídas (${done.length})`;
+      $("completedList").style.display = showCompleted ? "flex" : "none";
+      $("completedList").innerHTML = showCompleted ? done.map(t => renderRow(t, false)).join("") : "";
+    } else {
+      $("completedArea").style.display = "none";
+    }
+  }
+
+  function renderRow(t, isFocus) {
+    const blocked = isBlocked(t);
+    const pred = blocked ? tasks.find(x => x.id === t.dependsOn) : null;
+    const metas = [];
+    if (blocked) metas.push(`<span class="meta-blocked">🔒 ${esc(pred ? pred.title : "Bloqueada")}</span>`);
+    if (t.dueDate) {
+      const now = new Date(), over = !t.completed && new Date(t.dueDate) < now;
+      const tod = t.dueDate.slice(0,10) === now.toISOString().slice(0,10);
+      metas.push(`<span class="${over ? "meta-overdue" : (tod ? "meta-today" : "")}">${fmtDate(t.dueDate)}</span>`);
+    }
+    if (t.subtasks?.length) metas.push(`<span>${t.subtasks.filter(s=>s.completed).length}/${t.subtasks.length}</span>`);
+    if (t.alertType === "alarm") metas.push(`<span>⏰</span>`);
+    else if (t.alertType === "notification") metas.push(`<span>🔔</span>`);
+    if (t.recurrence?.mode && t.recurrence.mode !== "none") metas.push(`<span>🔁</span>`);
+    if (t.attachments?.length) metas.push(`<span>📎 ${t.attachments.length}</span>`);
+    if (t.notes) metas.push(`<span>📝</span>`);
+    (t.tags || []).forEach(tag => metas.push(`<span class="meta-tag">#${esc(tag)}</span>`));
+
+    return `
+      <div class="task-row p-${t.priority} ${t.completed ? "completed" : ""} ${blocked ? "blocked" : ""}" data-id="${t.id}" ${isFocus ? 'draggable="true"' : ""}>
+        ${isFocus ? '<span class="drag-handle" title="Arrastar para reordenar">⋮⋮</span>' : ""}
+        <input type="checkbox" class="task-check" data-action="check" ${t.completed ? "checked" : ""} />
+        <div class="task-content" data-action="edit">
+          <div class="task-title">${esc(t.title)}</div>
+          <div class="task-submeta">${metas.join(" · ")}</div>
+        </div>
+        <button type="button" class="star-btn ${t.isMyDay ? "active" : ""}" data-action="star">${t.isMyDay ? "★" : "☆"}</button>
+      </div>`;
+  }
+
+  function spawnRecurrence(t) {
+    const r = t.recurrence;
+    let base = (r.mode === "calendar" && t.dueDate) ? new Date(t.dueDate) : new Date();
+    if (r.mode === "completion" && t.dueDate) {
+      const o = new Date(t.dueDate); base.setHours(o.getHours(), o.getMinutes(), 0, 0);
+    }
+    const next = new Date(base), iv = parseInt(r.interval || 1, 10);
+    if (r.mode === "completion") next.setDate(next.getDate() + iv);
+    else if (r.type === "daily") next.setDate(next.getDate() + 1);
+    else if (r.type === "weekly") next.setDate(next.getDate() + 7);
+    else if (r.type === "monthly") next.setMonth(next.getMonth() + 1);
+    else if (r.type === "yearly") next.setFullYear(next.getFullYear() + 1);
+
+    const nextDue = toLocal(next);
+    const nextAlert = (t.alertTime && t.dueDate) ? toLocal(new Date(next.getTime() + (new Date(t.alertTime) - new Date(t.dueDate)))) : (t.alertTime ? nextDue : "");
+    const clone = JSON.parse(JSON.stringify(t));
+    Object.assign(clone, {
+      id: "t_" + Date.now() + "_" + Math.random().toString(36).slice(2,6),
+      completed: false, completedAt: null, dueDate: nextDue, alertTime: nextAlert, alertTriggered: false,
+      subtasks: (clone.subtasks || []).map(s => ({ ...s, completed: false }))
+    });
+    tasks.unshift(clone);
+    toast(`Próxima ocorrência: ${fmtDate(nextDue)}`);
+  }
+
+  function openEditModal(id) {
+    const t = tasks.find(x => x.id === id);
+    if (!t) return;
+    currentEditId = id;
+    $("editTitle").value = t.title;
+    $("editIsToday").checked = !!t.isMyDay;
+    $("editPriority").value = t.priority;
+    $("editDue").value = t.dueDate || "";
+    $("editAlertType").value = t.alertType || "none";
+    $("editAlertTime").value = t.alertTime || "";
+    $("editTags").value = (t.tags || []).join(", ");
+    $("editNotes").value = t.notes || "";
+    $("editDependsOn").innerHTML = `<option value="">Nenhuma</option>` + tasks.filter(x => x.id !== id && !x.completed).map(x => `<option value="${x.id}">${esc(x.title)}</option>`).join("");
+    $("editDependsOn").value = t.dependsOn || "";
+    const r = t.recurrence || { mode: "none", type: "daily", interval: 1 };
+    $("editRecMode").value = r.mode; $("editRecType").value = r.type; $("editRecInterval").value = r.interval || 1;
+    $("editRecTypeWrap").style.display = r.mode === "calendar" ? "flex" : "none";
+    $("editRecIntervalWrap").style.display = r.mode === "completion" ? "flex" : "none";
+    renderSubtasks(t); renderAttachments(t); setMdMode("write");
+    openModal("editModal");
+  }
+
+  function saveEdit() {
+    const t = tasks.find(x => x.id === currentEditId);
+    if (!t) return;
+    const wasToday = !!t.isMyDay;
+    t.title = $("editTitle").value.trim() || t.title;
+    t.isMyDay = $("editIsToday").checked;
+    if (t.isMyDay && !wasToday) t.focusOrder = minFocusOrder();
+    t.priority = parseInt($("editPriority").value, 10);
+    t.dueDate = $("editDue").value;
+    t.alertType = $("editAlertType").value;
+    if ($("editAlertTime").value !== t.alertTime) { t.alertTime = $("editAlertTime").value; t.alertTriggered = false; }
+    t.dependsOn = $("editDependsOn").value;
+    t.tags = $("editTags").value.split(",").map(s => s.trim().replace(/^#/, "")).filter(Boolean);
+    t.notes = $("editNotes").value;
+    t.recurrence = { mode: $("editRecMode").value, type: $("editRecType").value, interval: parseInt($("editRecInterval").value || 1, 10) };
+    renderAll(); pushToCloud();
+  }
+
+  function renderSubtasks(t) {
+    $("subtasksList").innerHTML = (t.subtasks || []).map((s, i) => `
+      <div class="item-chip">
+        <label class="check-inline" style="flex:1;"><input type="checkbox" data-sub-toggle="${i}" ${s.completed ? "checked" : ""} />
+          <span style="${s.completed ? "text-decoration:line-through;opacity:0.6;" : ""}">${esc(s.title)}</span>
+        </label>
+        <button type="button" class="close-x" data-sub-del="${i}">✕</button>
+      </div>`).join("");
+  }
+
+  function renderAttachments(t) {
+    $("attachmentsList").innerHTML = (t.attachments || []).map((a, i) => `
+      <div class="item-chip">
+        <a href="${a.url}" target="_blank" rel="noopener" style="color:#60a5fa;text-decoration:none;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">📎 ${esc(a.name)}</a>
+        <button type="button" class="close-x" data-att-del="${i}">✕</button>
+      </div>`).join("");
+  }
+
+  function setMdMode(mode) {
+    $("btnMdWrite").classList.toggle("active", mode === "write");
+    $("btnMdRead").classList.toggle("active", mode === "read");
+    $("editNotes").style.display = mode === "write" ? "block" : "none";
+    $("editNotesPreview").style.display = mode === "read" ? "block" : "none";
+    if (mode === "read") {
+      const md = $("editNotes").value;
+      $("editNotesPreview").innerHTML = !md ? `<span style="color:var(--muted)">Sem notas.</span>` :
+        esc(md).replace(/\u0060\u0060\u0060([\s\S]*?)\u0060\u0060\u0060/g, "<pre><code>$1</code></pre>")
+          .replace(/\u0060([^\u0060]+)\u0060/g, "<code>$1</code>")
+          .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
+          .replace(/\*([^*]+)\*/g, "<em>$1</em>")
+          .replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+          .replace(/\n/g, "<br>");
+    }
+  }
+
+  // Drag & Drop Reorder (Foco Agora)
+  function clearDrag() {
+    document.querySelectorAll("#todayList .task-row").forEach(el => el.classList.remove("drag-over-top", "drag-over-bottom", "dragging"));
+  }
+  function applyReorder(src, tgt, after) {
+    if (!src || !tgt || src === tgt) return;
+    const ord = sortFocus(tasks.filter(t => !t.completed && t.isMyDay));
+    const from = ord.findIndex(t => t.id === src);
+    if (from === -1) return;
+    const [moved] = ord.splice(from, 1);
+    let to = ord.findIndex(t => t.id === tgt);
+    if (to === -1) return;
+    if (after) to++;
+    ord.splice(to, 0, moved);
+    ord.forEach((t, i) => t.focusOrder = i);
+    renderAll(); pushToCloud();
+  }
+
+  // Alarmes
+  function stopBeep() { if (alarmTimer) { clearInterval(alarmTimer); alarmTimer = null; } }
+  function triggerAlarm(t) {
+    activeAlarmId = t.id;
+    $("alarmTitle").textContent = t.title;
+    $("alarmDue").textContent = t.dueDate ? `Prazo: ${fmtDate(t.dueDate)}` : "";
+    openModal("alarmModal");
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+    stopBeep();
+    const beep = () => {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.frequency.setValueAtTime(880, audioCtx.currentTime);
+      o.frequency.setValueAtTime(1100, audioCtx.currentTime + 0.15);
+      g.gain.setValueAtTime(0.25, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.45);
+      o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + 0.45);
+    };
+    beep(); alarmTimer = setInterval(beep, 1200);
+  }
+  function snooze(mins) {
+    stopBeep(); closeModal("alarmModal");
+    const t = tasks.find(x => x.id === activeAlarmId);
+    if (t) { t.alertTime = toLocal(new Date(Date.now() + mins * 60000)); t.alertTriggered = false; pushToCloud(); toast(`Adiado ${mins} min`); }
+    activeAlarmId = null;
+  }
+
+  // Bindings Gerais
+  $("btnAddOpen").addEventListener("click", () => {
+    $("createForm").reset();
+    $("newIsToday").checked = true;
+    $("newPriority").value = "3";
+    $("newRecTypeWrap").style.display = "none";
+    $("newRecIntervalWrap").style.display = "none";
+    $("newDependsOn").innerHTML = `<option value="">Nenhuma</option>` + tasks.filter(t => !t.completed).map(t => `<option value="${t.id}">${esc(t.title)}</option>`).join("");
+    openModal("createModal");
+    setTimeout(() => $("newTitle").focus(), 50);
+  });
+
+  $("gearBtn").addEventListener("click", e => { e.stopPropagation(); $("gearMenu").classList.toggle("open"); });
+  $("menuCloud").addEventListener("click", () => {
+    $("gearMenu").classList.remove("open");
+    $("cfgUrl").value = config.url || ""; $("cfgToken").value = config.token || "";
+    openModal("configModal");
+  });
+  $("menuSync").addEventListener("click", () => {
+    $("gearMenu").classList.remove("open");
+    (!config.url || !config.token) ? $("menuCloud").click() : pullFromCloud();
+  });
+  $("btnSaveCloud").addEventListener("click", () => {
+    config.url = $("cfgUrl").value.trim(); config.token = $("cfgToken").value.trim();
+    localStorage.setItem("tf_config", JSON.stringify(config));
+    closeModal("configModal"); pullFromCloud();
+  });
+
+  $("newRecMode").addEventListener("change", e => {
+    $("newRecTypeWrap").style.display = e.target.value === "calendar" ? "flex" : "none";
+    $("newRecIntervalWrap").style.display = e.target.value === "completion" ? "flex" : "none";
+  });
+
+  $("createForm").addEventListener("submit", e => {
+    e.preventDefault();
+    const title = $("newTitle").value.trim();
+    if (!title) return;
+    const due = $("newDue").value, aType = $("newAlertType").value, isToday = $("newIsToday").checked;
+    tasks.unshift({
+      id: "t_" + Date.now() + "_" + Math.random().toString(36).slice(2,6),
+      title, completed: false, completedAt: null,
+      priority: parseInt($("newPriority").value, 10), dueDate: due, isMyDay: isToday,
+      focusOrder: isToday ? minFocusOrder() : null,
+      alertType: aType, alertTime: $("newAlertTime").value || (aType !== "none" ? due : ""), alertTriggered: false,
+      subtasks: [],
+      recurrence: { mode: $("newRecMode").value, type: $("newRecType").value, interval: parseInt($("newRecInterval").value || 1, 10) },
+      tags: $("newTags").value.split(",").map(s => s.trim().replace(/^#/, "")).filter(Boolean),
+      notes: $("newNotes").value, attachments: [], dependsOn: $("newDependsOn").value
+    });
+    closeModal("createModal"); renderAll(); pushToCloud();
+  });
+
+  $("toggleTasksBtn").addEventListener("click", () => { showTasks = !showTasks; renderAll(); });
+  $("toggleCompletedBtn").addEventListener("click", () => { showCompleted = !showCompleted; renderAll(); });
+
+  $("appMain").addEventListener("click", e => {
+    const row = e.target.closest(".task-row");
+    if (!row) return;
+    const id = row.dataset.id, t = tasks.find(x => x.id === id);
+    if (!t) return;
+    if (e.target.closest('[data-action="star"]')) {
+      t.isMyDay = !t.isMyDay;
+      if (t.isMyDay) t.focusOrder = minFocusOrder();
+      renderAll(); pushToCloud();
+    } else if (e.target.closest('[data-action="edit"]')) {
+      openEditModal(id);
+    }
+  });
+
+  $("appMain").addEventListener("change", e => {
+    if (!e.target.matches('[data-action="check"]')) return;
+    const row = e.target.closest(".task-row"), t = tasks.find(x => x.id === row?.dataset.id);
+    if (!t) return;
+    if (!t.completed && isBlocked(t)) {
+      const p = tasks.find(x => x.id === t.dependsOn);
+      toast(`Bloqueada por: "${p ? p.title : "tarefa anterior"}"`);
+      return renderAll();
+    }
+    t.completed = !t.completed;
+    t.completedAt = t.completed ? new Date().toISOString() : null;
+    if (t.completed && t.recurrence?.mode && t.recurrence.mode !== "none") spawnRecurrence(t);
+    renderAll(); pushToCloud();
+  });
+
+  // Drag & Drop Listeners on todayList
+  const tl = $("todayList");
+  tl.addEventListener("dragstart", e => {
+    const row = e.target.closest(".task-row"); if (!row) return;
+    draggedId = row.dataset.id; e.dataTransfer.effectAllowed = "move";
+    requestAnimationFrame(() => row.classList.add("dragging"));
+  });
+  tl.addEventListener("dragover", e => {
+    e.preventDefault();
+    const row = e.target.closest(".task-row");
+    if (!row || !draggedId || row.dataset.id === draggedId) return;
+    const after = (e.clientY - row.getBoundingClientRect().top) > row.offsetHeight / 2;
+    clearDrag();
+    document.querySelector(`#todayList .task-row[data-id="${draggedId}"]`)?.classList.add("dragging");
+    dropTargetId = row.dataset.id; dropAfter = after;
+    row.classList.add(after ? "drag-over-bottom" : "drag-over-top");
+  });
+  tl.addEventListener("drop", e => {
+    e.preventDefault();
+    const s = draggedId, t = dropTargetId, a = dropAfter;
+    clearDrag(); draggedId = dropTargetId = null;
+    applyReorder(s, t, a);
+  });
+  tl.addEventListener("dragend", () => { clearDrag(); draggedId = dropTargetId = null; });
+  tl.addEventListener("touchstart", e => {
+    if (!e.target.closest(".drag-handle")) return;
+    const row = e.target.closest(".task-row");
+    draggedId = row.dataset.id; dropTargetId = null; row.classList.add("dragging");
+  }, { passive: true });
+  tl.addEventListener("touchmove", e => {
+    if (!draggedId) return;
+    e.preventDefault();
+    const touch = e.touches[0], under = document.elementFromPoint(touch.clientX, touch.clientY)?.closest("#todayList .task-row");
+    clearDrag();
+    document.querySelector(`#todayList .task-row[data-id="${draggedId}"]`)?.classList.add("dragging");
+    if (under && under.dataset.id !== draggedId) {
+      const after = (touch.clientY - under.getBoundingClientRect().top) > under.offsetHeight / 2;
+      dropTargetId = under.dataset.id; dropAfter = after;
+      under.classList.add(after ? "drag-over-bottom" : "drag-over-top");
+    } else dropTargetId = null;
+  }, { passive: false });
+  tl.addEventListener("touchend", () => {
+    if (!draggedId) return;
+    const s = draggedId, t = dropTargetId, a = dropAfter;
+    clearDrag(); draggedId = dropTargetId = null;
+    if (s && t) applyReorder(s, t, a);
+  });
+
+  // Edit Modal Listeners
+  ["editTitle","editIsToday","editPriority","editDue","editAlertType","editAlertTime","editDependsOn","editTags","editRecMode","editRecType","editRecInterval","editNotes"]
+    .forEach(id => $(id).addEventListener("change", () => {
+      if (id === "editRecMode") {
+        $("editRecTypeWrap").style.display = $("editRecMode").value === "calendar" ? "flex" : "none";
+        $("editRecIntervalWrap").style.display = $("editRecMode").value === "completion" ? "flex" : "none";
+      }
+      saveEdit();
+    }));
+
+  $("btnAddSub").addEventListener("click", () => {
+    const t = tasks.find(x => x.id === currentEditId), v = $("newSubInput").value.trim();
+    if (!t || !v) return;
+    (t.subtasks = t.subtasks || []).push({ id: Date.now(), title: v, completed: false });
+    $("newSubInput").value = ""; renderSubtasks(t); renderAll(); pushToCloud();
+  });
+  $("newSubInput").addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); $("btnAddSub").click(); } });
+  $("subtasksList").addEventListener("change", e => {
+    const idx = e.target.dataset.subToggle, t = tasks.find(x => x.id === currentEditId);
+    if (idx !== undefined && t) { t.subtasks[idx].completed = e.target.checked; renderSubtasks(t); renderAll(); pushToCloud(); }
+  });
+  $("subtasksList").addEventListener("click", e => {
+    const idx = e.target.dataset.subDel, t = tasks.find(x => x.id === currentEditId);
+    if (idx !== undefined && t) { t.subtasks.splice(idx, 1); renderSubtasks(t); renderAll(); pushToCloud(); }
+  });
+
+  $("btnMdWrite").addEventListener("click", () => setMdMode("write"));
+  $("btnMdRead").addEventListener("click", () => setMdMode("read"));
+
+  $("editFileInput").addEventListener("change", e => {
+    const file = e.target.files[0]; if (!file) return;
+    if (!config.url || !config.token) { toast("Configure a Nuvem primeiro"); e.target.value = ""; return; }
+    $("uploadMsg").textContent = "Enviando para o Google Drive...";
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const res = await fetch(config.url, {
+          method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ token: config.token, action: "uploadFile", fileName: file.name, mimeType: file.type || "application/octet-stream", base64Data: reader.result.split(",")[1] })
+        });
+        const data = await res.json();
+        if (data.status === "ok" && data.file) {
+          const t = tasks.find(x => x.id === currentEditId);
+          if (t) { (t.attachments = t.attachments || []).push(data.file); renderAttachments(t); renderAll(); pushToCloud(); }
+          $("uploadMsg").textContent = "Salvo no Drive ✓";
+        } else $("uploadMsg").textContent = "Erro ao enviar.";
+      } catch { $("uploadMsg").textContent = "Falha de conexão."; }
+      e.target.value = "";
+    };
+    reader.readAsDataURL(file);
+  });
+  $("attachmentsList").addEventListener("click", e => {
+    const idx = e.target.dataset.attDel, t = tasks.find(x => x.id === currentEditId);
+    if (idx !== undefined && t) { t.attachments.splice(idx, 1); renderAttachments(t); renderAll(); pushToCloud(); }
+  });
+
+  $("btnDeleteTask").addEventListener("click", () => {
+    if (!currentEditId) return;
+    tasks = tasks.filter(x => x.id !== currentEditId);
+    closeModal("editModal"); renderAll(); pushToCloud();
+  });
+
+  $("btnSnooze5").addEventListener("click", () => snooze(5));
+  $("btnSnooze15").addEventListener("click", () => snooze(15));
+  $("btnDismissAlarm").addEventListener("click", () => { stopBeep(); closeModal("alarmModal"); activeAlarmId = null; });
+
+  document.addEventListener("click", e => {
+    if (!e.target.closest("#gearBtn") && !e.target.closest("#gearMenu")) $("gearMenu").classList.remove("open");
+    const closeId = e.target.dataset.close;
+    if (closeId && (e.target.classList.contains("modal-backdrop") || e.target.classList.contains("close-x") || e.target.classList.contains("btn"))) closeModal(closeId);
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  });
+
+  setInterval(() => {
+    const now = new Date();
+    for (const t of tasks) {
+      if (t.completed || t.alertTriggered || t.alertType === "none" || !t.alertTime) continue;
+      if (now >= new Date(t.alertTime)) {
+        t.alertTriggered = true; pushToCloud();
+        if (t.alertType === "notification") {
+          toast(`🔔 ${t.title}`);
+          if ("Notification" in window && Notification.permission === "granted") new Notification("Lembrete", { body: t.title });
+        } else if (t.alertType === "alarm") triggerAlarm(t);
+      }
+    }
+  }, 10000);
+
+  renderAll();
+  if ("Notification" in window && Notification.permission === "default") Notification.requestPermission();
+  if (config.url && config.token) pullFromCloud();
+})();
+</script>
+</body>
+</html>
