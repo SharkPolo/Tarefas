@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tarefas</title>
+  <title>Foco Agora</title>
   <style>
     :root {
       --bg: #0b0f19;
@@ -33,31 +33,45 @@
       padding-bottom: 60px;
     }
 
-    /* Topo Minimalista */
+    /* Topo com "Foco Agora" centralizado na mesma linha dos botões */
     header {
       max-width: 720px;
       margin: 0 auto;
-      padding: 22px 18px 10px;
-      display: flex;
-      justify-content: space-between;
+      padding: 20px 18px 14px;
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
       align-items: center;
+      gap: 8px;
     }
 
-    .app-title {
+    .header-center {
       display: flex;
       align-items: center;
-      gap: 10px;
-      font-size: 1.25rem;
+      justify-content: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .focus-heading {
+      font-size: 1.12rem;
       font-weight: 700;
-      letter-spacing: -0.02em;
+      color: var(--myday);
+      letter-spacing: -0.01em;
+    }
+
+    .header-count {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-weight: 600;
     }
 
     .status-dot {
-      width: 9px;
-      height: 9px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       background: #6b7280;
       display: inline-block;
+      flex-shrink: 0;
       transition: background 0.2s;
     }
     .status-dot.ok { background: #22c55e; }
@@ -65,20 +79,21 @@
     .status-dot.err { background: #ef4444; }
 
     .top-actions {
+      justify-self: end;
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
       position: relative;
     }
 
     .icon-btn {
-      width: 40px;
-      height: 40px;
+      width: 38px;
+      height: 38px;
       border-radius: 10px;
       border: 1px solid var(--border);
       background: var(--surface);
       color: var(--text);
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -91,7 +106,7 @@
       background: var(--green);
       border-color: var(--green);
       color: #fff;
-      font-size: 1.5rem;
+      font-size: 1.45rem;
       font-weight: 500;
       line-height: 1;
     }
@@ -100,7 +115,7 @@
     /* Menu Dropdown da Engrenagem */
     .gear-menu {
       position: absolute;
-      top: 48px;
+      top: 46px;
       right: 0;
       background: var(--surface);
       border: 1px solid var(--border);
@@ -133,30 +148,49 @@
     /* Área Principal */
     main {
       max-width: 720px;
-      margin: 10px auto;
+      margin: 6px auto;
       padding: 0 18px;
       display: flex;
       flex-direction: column;
-      gap: 28px;
+      gap: 24px;
     }
 
-    .list-section h2 {
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-muted);
-      margin-bottom: 10px;
+    .list-section {
       display: flex;
-      align-items: center;
-      gap: 8px;
+      flex-direction: column;
+      gap: 10px;
     }
-    .list-section.today-section h2 { color: var(--myday); }
 
-    .count {
-      font-size: 0.78rem;
+    /* Botão de colapsar/expandir (Tarefas e Concluídas) */
+    .section-toggle {
+      background: transparent;
+      border: none;
       color: var(--text-muted);
-      font-weight: 500;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 2px;
+      transition: color 0.15s;
     }
+    .section-toggle:hover { color: var(--text); }
+
+    .completed-toggle {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.83rem;
+      cursor: pointer;
+      align-self: flex-start;
+      padding: 4px 2px;
+      transition: color 0.15s;
+    }
+    .completed-toggle:hover { color: var(--text); }
 
     .task-list {
       display: flex;
@@ -167,10 +201,10 @@
     .empty-msg {
       color: #4b5563;
       font-size: 0.88rem;
-      padding: 8px 2px;
+      padding: 6px 2px;
     }
 
-    /* Cartão de Tarefa Limpo */
+    /* Cartão de Tarefa */
     .task-row {
       background: var(--surface);
       border: 1px solid var(--border);
@@ -179,8 +213,8 @@
       padding: 12px 14px;
       display: flex;
       align-items: center;
-      gap: 12px;
-      transition: background 0.15s, border-color 0.15s;
+      gap: 11px;
+      transition: background 0.15s, border-color 0.15s, opacity 0.15s;
     }
     .task-row:hover {
       background: var(--surface-hover);
@@ -193,6 +227,32 @@
     .task-row.blocked { opacity: 0.7; border-style: dashed; }
     .task-row.completed { opacity: 0.5; }
     .task-row.completed .task-title { text-decoration: line-through; }
+
+    /* Alça e estados de Drag & Drop (Foco Agora) */
+    .drag-handle {
+      color: #4b5563;
+      cursor: grab;
+      font-size: 1rem;
+      line-height: 1;
+      padding: 4px 2px;
+      user-select: none;
+      touch-action: none;
+      flex-shrink: 0;
+      letter-spacing: -2px;
+    }
+    .drag-handle:hover { color: var(--text-muted); }
+    .drag-handle:active { cursor: grabbing; }
+
+    .task-row.dragging {
+      opacity: 0.4;
+      border-color: var(--myday);
+    }
+    .task-row.drag-over-top {
+      border-top: 2px solid var(--myday);
+    }
+    .task-row.drag-over-bottom {
+      border-bottom: 2px solid var(--myday);
+    }
 
     .task-check {
       width: 19px;
@@ -241,17 +301,6 @@
     }
     .star-btn:hover { color: var(--text-muted); }
     .star-btn.active { color: var(--myday); }
-
-    .completed-toggle {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-size: 0.82rem;
-      cursor: pointer;
-      align-self: flex-start;
-      padding: 4px 0;
-    }
-    .completed-toggle:hover { color: var(--text); }
 
     /* Modais */
     .modal-backdrop {
@@ -436,8 +485,11 @@
 <body>
 
 <header>
-  <div class="app-title">
-    <span>Tarefas</span>
+  <div></div>
+
+  <div class="header-center">
+    <span class="focus-heading">☀️ Foco Agora</span>
+    <span id="todayCount" class="header-count">0</span>
     <span id="syncDot" class="status-dot" title="Modo Local"></span>
   </div>
 
@@ -453,19 +505,20 @@
 </header>
 
 <main>
-  <!-- Lista: Hoje -->
-  <section class="list-section today-section">
-    <h2>☀️ Hoje <span id="todayCount" class="count">0</span></h2>
+  <!-- Lista: Foco Agora (com reordenação por arrastar e soltar) -->
+  <section class="list-section">
     <div id="todayList" class="task-list"></div>
   </section>
 
-  <!-- Lista: Tarefas -->
+  <!-- Lista: Tarefas (colapsável) -->
   <section class="list-section">
-    <h2>📋 Tarefas <span id="tasksCount" class="count">0</span></h2>
+    <button type="button" id="toggleTasksBtn" class="section-toggle" onclick="toggleShowTasks()">
+      ▾ Tarefas (0)
+    </button>
     <div id="generalList" class="task-list"></div>
   </section>
 
-  <!-- Concluídas (discreto no rodapé, aparece apenas se houver concluídas) -->
+  <!-- Lista: Concluídas (colapsável) -->
   <div id="completedArea" style="display:none; flex-direction:column; gap:10px;">
     <button type="button" id="toggleCompletedBtn" class="completed-toggle" onclick="toggleShowCompleted()">
       ▸ Mostrar concluídas (0)
@@ -504,7 +557,7 @@
     </div>
 
     <label class="check-inline">
-      <input type="checkbox" id="newIsToday" checked /> Adicionar em <strong>Hoje</strong>
+      <input type="checkbox" id="newIsToday" checked /> Adicionar em <strong>Foco Agora</strong>
     </label>
 
     <details class="advanced-box">
@@ -590,7 +643,7 @@
     </div>
 
     <label class="check-inline">
-      <input type="checkbox" id="editIsToday" onchange="saveEditChanges()" /> Exibir em <strong>Hoje</strong>
+      <input type="checkbox" id="editIsToday" onchange="saveEditChanges()" /> Exibir em <strong>Foco Agora</strong>
     </label>
 
     <div class="field-row">
@@ -741,10 +794,16 @@
   let tasks = JSON.parse(localStorage.getItem("tf_tasks") || "[]");
   let config = JSON.parse(localStorage.getItem("tf_config") || '{"url":"","token":""}');
   let currentEditId = null;
+  let showTasks = true;
   let showCompleted = false;
   let audioCtx = null;
   let alarmTimer = null;
   let activeAlarmId = null;
+
+  // Estado de Drag & Drop (Foco Agora)
+  let draggedTaskId = null;
+  let dropTargetId = null;
+  let dropInsertAfter = false;
 
   window.addEventListener("DOMContentLoaded", () => {
     renderAll();
@@ -872,6 +931,13 @@
     document.getElementById("newRecIntervalWrap").style.display = mode === "completion" ? "flex" : "none";
   }
 
+  function getMinFocusOrder() {
+    const orders = tasks
+      .filter(t => !t.completed && t.isMyDay && typeof t.focusOrder === "number")
+      .map(t => t.focusOrder);
+    return orders.length ? Math.min(...orders) - 1 : 0;
+  }
+
   function handleCreateTask(e) {
     e.preventDefault();
     const title = document.getElementById("newTitle").value.trim();
@@ -880,6 +946,7 @@
     const dueDate = document.getElementById("newDue").value;
     const alertType = document.getElementById("newAlertType").value;
     const alertTime = document.getElementById("newAlertTime").value || (alertType !== "none" ? dueDate : "");
+    const isMyDay = document.getElementById("newIsToday").checked;
 
     const task = {
       id: "t_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
@@ -888,7 +955,8 @@
       completedAt: null,
       priority: parseInt(document.getElementById("newPriority").value, 10),
       dueDate,
-      isMyDay: document.getElementById("newIsToday").checked,
+      isMyDay,
+      focusOrder: isMyDay ? getMinFocusOrder() : null,
       alertType,
       alertTime,
       alertTriggered: false,
@@ -916,6 +984,9 @@
     const t = tasks.find(x => x.id === id);
     if (!t) return;
     t.isMyDay = !t.isMyDay;
+    if (t.isMyDay) {
+      t.focusOrder = getMinFocusOrder();
+    }
     renderAll();
     pushToCloud();
   }
@@ -981,14 +1052,14 @@
     showToast(`Próxima ocorrência: ${formatDate(nextDue)}`);
   }
 
-  // --- RENDERIZAÇÃO ---
+  // --- ORDENAÇÃO & RENDERIZAÇÃO ---
   function isTaskBlocked(t) {
     if (!t.dependsOn) return false;
     const pred = tasks.find(x => x.id === t.dependsOn);
     return pred ? !pred.completed : false;
   }
 
-  function sortTasks(list) {
+  function sortByPriorityAndDue(list) {
     return [...list].sort((a, b) => {
       if (a.priority !== b.priority) return a.priority - b.priority;
       if (a.dueDate && b.dueDate) return new Date(a.dueDate) - new Date(b.dueDate);
@@ -998,399 +1069,43 @@
     });
   }
 
+  function sortFocusTasks(list) {
+    return [...list].sort((a, b) => {
+      const aHas = typeof a.focusOrder === "number";
+      const bHas = typeof b.focusOrder === "number";
+      if (aHas && bHas && a.focusOrder !== b.focusOrder) return a.focusOrder - b.focusOrder;
+      if (aHas && !bHas) return -1;
+      if (!aHas && bHas) return 1;
+      if (a.priority !== b.priority) return a.priority - b.priority;
+      if (a.dueDate && b.dueDate) return new Date(a.dueDate) - new Date(b.dueDate);
+      if (a.dueDate) return -1;
+      if (b.dueDate) return 1;
+      return 0;
+    });
+  }
+
   function renderAll() {
-    const todayTasks = sortTasks(tasks.filter(t => !t.completed && t.isMyDay));
-    const generalTasks = sortTasks(tasks.filter(t => !t.completed && !t.isMyDay));
+    const todayTasks = sortFocusTasks(tasks.filter(t => !t.completed && t.isMyDay));
+    const generalTasks = sortByPriorityAndDue(tasks.filter(t => !t.completed && !t.isMyDay));
     const doneTasks = tasks.filter(t => t.completed);
 
+    // Foco Agora (Topo)
     document.getElementById("todayCount").textContent = todayTasks.length;
     document.getElementById("todayList").innerHTML = todayTasks.length
-      ? todayTasks.map(renderRow).join("")
-      : `<div class="empty-msg">Nenhuma tarefa para hoje.</div>`;
+      ? todayTasks.map(t => renderRow(t, true)).join("")
+      : `<div class="empty-msg">Nenhuma tarefa em Foco Agora.</div>`;
 
-    document.getElementById("tasksCount").textContent = generalTasks.length;
-    document.getElementById("generalList").innerHTML = generalTasks.length
-      ? generalTasks.map(renderRow).join("")
-      : `<div class="empty-msg">Nenhuma tarefa pendente.</div>`;
+    // Tarefas (Colapsável)
+    document.getElementById("toggleTasksBtn").textContent =
+      `${showTasks ? "▾" : "▸"} Tarefas (${generalTasks.length})`;
+    const genList = document.getElementById("generalList");
+    genList.style.display = showTasks ? "flex" : "none";
+    genList.innerHTML = showTasks
+      ? (generalTasks.length
+          ? generalTasks.map(t => renderRow(t, false)).join("")
+          : `<div class="empty-msg">Nenhuma tarefa pendente.</div>`)
+      : "";
 
+    // Concluídas (Colapsável)
     const compArea = document.getElementById("completedArea");
-    if (doneTasks.length > 0) {
-      compArea.style.display = "flex";
-      document.getElementById("toggleCompletedBtn").textContent =
-        `${showCompleted ? "▾ Ocultar" : "▸ Mostrar"} concluídas (${doneTasks.length})`;
-      const compList = document.getElementById("completedList");
-      compList.style.display = showCompleted ? "flex" : "none";
-      compList.innerHTML = showCompleted ? doneTasks.map(renderRow).join("") : "";
-    } else {
-      compArea.style.display = "none";
-    }
-  }
-
-  function toggleShowCompleted() {
-    showCompleted = !showCompleted;
-    renderAll();
-  }
-
-  function renderRow(t) {
-    const blocked = isTaskBlocked(t);
-    const pred = blocked ? tasks.find(x => x.id === t.dependsOn) : null;
-    const metas = [];
-
-    if (blocked) {
-      metas.push(`<span class="meta-blocked">🔒 ${escapeHtml(pred ? pred.title : "Bloqueada")}</span>`);
-    }
-    if (t.dueDate) {
-      const d = new Date(t.dueDate);
-      const now = new Date();
-      const isToday = t.dueDate.slice(0, 10) === now.toISOString().slice(0, 10);
-      const isOverdue = !t.completed && d < now;
-      const cls = isOverdue ? "meta-overdue" : (isToday ? "meta-today" : "");
-      metas.push(`<span class="${cls}">${formatDate(t.dueDate)}</span>`);
-    }
-    if (t.subtasks && t.subtasks.length > 0) {
-      const done = t.subtasks.filter(s => s.completed).length;
-      metas.push(`<span>${done}/${t.subtasks.length}</span>`);
-    }
-    if (t.alertType === "alarm") metas.push(`<span>⏰</span>`);
-    else if (t.alertType === "notification") metas.push(`<span>🔔</span>`);
-    if (t.recurrence && t.recurrence.mode !== "none") metas.push(`<span>🔁</span>`);
-    if (t.attachments && t.attachments.length) metas.push(`<span>📎 ${t.attachments.length}</span>`);
-    if (t.notes) metas.push(`<span>📝</span>`);
-    (t.tags || []).forEach(tag => metas.push(`<span class="meta-tag">#${escapeHtml(tag)}</span>`));
-
-    return `
-      <div class="task-row p-${t.priority} ${t.completed ? "completed" : ""} ${blocked ? "blocked" : ""}">
-        <input type="checkbox" class="task-check" ${t.completed ? "checked" : ""} onclick="toggleComplete('${t.id}', event)" />
-        <div class="task-content" onclick="openEditModal('${t.id}')">
-          <div class="task-title">${escapeHtml(t.title)}</div>
-          <div class="task-submeta">${metas.join(" · ")}</div>
-        </div>
-        <button type="button" class="star-btn ${t.isMyDay ? "active" : ""}" onclick="toggleToday('${t.id}', event)" title="${t.isMyDay ? "Remover de Hoje" : "Mover para Hoje"}">
-          ${t.isMyDay ? "★" : "☆"}
-        </button>
-      </div>
-    `;
-  }
-
-  // --- EDIÇÃO E DETALHES ---
-  function openEditModal(id) {
-    const t = tasks.find(x => x.id === id);
-    if (!t) return;
-    currentEditId = id;
-
-    document.getElementById("editTitle").value = t.title;
-    document.getElementById("editIsToday").checked = !!t.isMyDay;
-    document.getElementById("editPriority").value = t.priority;
-    document.getElementById("editDue").value = t.dueDate || "";
-    document.getElementById("editAlertType").value = t.alertType || "none";
-    document.getElementById("editAlertTime").value = t.alertTime || "";
-    document.getElementById("editTags").value = (t.tags || []).join(", ");
-    document.getElementById("editNotes").value = t.notes || "";
-
-    const depSel = document.getElementById("editDependsOn");
-    depSel.innerHTML = `<option value="">Nenhuma</option>` +
-      tasks.filter(x => x.id !== t.id && !x.completed).map(x => `<option value="${x.id}">${escapeHtml(x.title)}</option>`).join("");
-    depSel.value = t.dependsOn || "";
-
-    const rec = t.recurrence || { mode: "none", type: "daily", interval: 1 };
-    document.getElementById("editRecMode").value = rec.mode;
-    document.getElementById("editRecType").value = rec.type;
-    document.getElementById("editRecInterval").value = rec.interval || 1;
-    toggleEditRecFields();
-
-    renderSubtasks(t);
-    renderAttachments(t);
-    setMdMode("write");
-    openModal("editModal");
-  }
-
-  function toggleEditRecFields() {
-    const mode = document.getElementById("editRecMode").value;
-    document.getElementById("editRecTypeWrap").style.display = mode === "calendar" ? "flex" : "none";
-    document.getElementById("editRecIntervalWrap").style.display = mode === "completion" ? "flex" : "none";
-  }
-
-  function saveEditChanges() {
-    const t = tasks.find(x => x.id === currentEditId);
-    if (!t) return;
-
-    t.title = document.getElementById("editTitle").value.trim() || t.title;
-    t.isMyDay = document.getElementById("editIsToday").checked;
-    t.priority = parseInt(document.getElementById("editPriority").value, 10);
-    t.dueDate = document.getElementById("editDue").value;
-    t.alertType = document.getElementById("editAlertType").value;
-
-    const newAlert = document.getElementById("editAlertTime").value;
-    if (newAlert !== t.alertTime) {
-      t.alertTime = newAlert;
-      t.alertTriggered = false;
-    }
-
-    t.dependsOn = document.getElementById("editDependsOn").value;
-    t.tags = document.getElementById("editTags").value.split(",").map(s => s.trim().replace(/^#/, "")).filter(Boolean);
-    t.notes = document.getElementById("editNotes").value;
-    t.recurrence = {
-      mode: document.getElementById("editRecMode").value,
-      type: document.getElementById("editRecType").value,
-      interval: parseInt(document.getElementById("editRecInterval").value || 1, 10)
-    };
-
-    renderAll();
-    pushToCloud();
-  }
-
-  function deleteTask() {
-    if (!currentEditId) return;
-    tasks = tasks.filter(x => x.id !== currentEditId);
-    closeModal("editModal");
-    renderAll();
-    pushToCloud();
-  }
-
-  // --- SUBTAREFAS ---
-  function renderSubtasks(t) {
-    document.getElementById("subtasksList").innerHTML = (t.subtasks || []).map((s, idx) => `
-      <div class="item-chip">
-        <label class="check-inline" style="flex:1;">
-          <input type="checkbox" ${s.completed ? "checked" : ""} onchange="toggleSub(${idx})" />
-          <span style="${s.completed ? "text-decoration:line-through;opacity:0.6;" : ""}">${escapeHtml(s.title)}</span>
-        </label>
-        <button type="button" class="close-x" onclick="removeSub(${idx})">✕</button>
-      </div>
-    `).join("");
-  }
-
-  function addSubtask() {
-    const inp = document.getElementById("newSubInput");
-    const t = tasks.find(x => x.id === currentEditId);
-    if (!inp.value.trim() || !t) return;
-    t.subtasks = t.subtasks || [];
-    t.subtasks.push({ id: Date.now(), title: inp.value.trim(), completed: false });
-    inp.value = "";
-    renderSubtasks(t);
-    renderAll();
-    pushToCloud();
-  }
-
-  function toggleSub(idx) {
-    const t = tasks.find(x => x.id === currentEditId);
-    if (!t || !t.subtasks[idx]) return;
-    t.subtasks[idx].completed = !t.subtasks[idx].completed;
-    renderSubtasks(t);
-    renderAll();
-    pushToCloud();
-  }
-
-  function removeSub(idx) {
-    const t = tasks.find(x => x.id === currentEditId);
-    if (!t) return;
-    t.subtasks.splice(idx, 1);
-    renderSubtasks(t);
-    renderAll();
-    pushToCloud();
-  }
-
-  // --- MARKDOWN ---
-  function setMdMode(mode) {
-    const ta = document.getElementById("editNotes");
-    const prev = document.getElementById("editNotesPreview");
-    document.getElementById("btnMdWrite").classList.toggle("active", mode === "write");
-    document.getElementById("btnMdRead").classList.toggle("active", mode === "read");
-
-    if (mode === "write") {
-      ta.style.display = "block";
-      prev.style.display = "none";
-    } else {
-      ta.style.display = "none";
-      prev.style.display = "block";
-      prev.innerHTML = renderMarkdown(ta.value);
-    }
-  }
-
-  function renderMarkdown(md) {
-    if (!md) return `<span style="color:var(--text-muted)">Sem notas.</span>`;
-    let html = escapeHtml(md);
-    html = html.replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>");
-    html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
-    html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-    html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
-    html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
-    html = html.replace(/^\s*-\s+(.*)$/gm, "<li>$1</li>");
-    html = html.replace(/(<li>.*<\/li>)/s, "<ul>$1</ul>");
-    return html.replace(/\n/g, "<br>");
-  }
-
-  // --- ANEXOS (GOOGLE DRIVE) ---
-  function renderAttachments(t) {
-    document.getElementById("attachmentsList").innerHTML = (t.attachments || []).map((a, idx) => `
-      <div class="item-chip">
-        <a href="${a.url}" target="_blank" rel="noopener" style="color:#60a5fa; text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-          📎 ${escapeHtml(a.name)}
-        </a>
-        <button type="button" class="close-x" onclick="removeAttachment(${idx})">✕</button>
-      </div>
-    `).join("");
-  }
-
-  function uploadAttachment(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (!config.url || !config.token) {
-      showToast("Configure a Nuvem primeiro");
-      e.target.value = "";
-      return;
-    }
-    const msg = document.getElementById("uploadMsg");
-    msg.textContent = "Enviando para o Google Drive...";
-
-    const reader = new FileReader();
-    reader.onload = async () => {
-      try {
-        const res = await fetch(config.url, {
-          method: "POST",
-          headers: { "Content-Type": "text/plain;charset=utf-8" },
-          body: JSON.stringify({
-            token: config.token,
-            action: "uploadFile",
-            fileName: file.name,
-            mimeType: file.type || "application/octet-stream",
-            base64Data: reader.result.split(",")[1]
-          })
-        });
-        const data = await res.json();
-        if (data.status === "ok" && data.file) {
-          const t = tasks.find(x => x.id === currentEditId);
-          if (t) {
-            t.attachments = t.attachments || [];
-            t.attachments.push(data.file);
-            renderAttachments(t);
-            renderAll();
-            pushToCloud();
-          }
-          msg.textContent = "Salvo no Drive ✓";
-        } else {
-          msg.textContent = "Erro ao enviar.";
-        }
-      } catch {
-        msg.textContent = "Falha de conexão.";
-      }
-      e.target.value = "";
-    };
-    reader.readAsDataURL(file);
-  }
-
-  function removeAttachment(idx) {
-    const t = tasks.find(x => x.id === currentEditId);
-    if (!t) return;
-    t.attachments.splice(idx, 1);
-    renderAttachments(t);
-    renderAll();
-    pushToCloud();
-  }
-
-  // --- ALERTAS & DESPERTADOR ---
-  function checkAlerts() {
-    const now = new Date();
-    for (const t of tasks) {
-      if (t.completed || t.alertTriggered || t.alertType === "none" || !t.alertTime) continue;
-      if (now >= new Date(t.alertTime)) {
-        t.alertTriggered = true;
-        pushToCloud();
-        if (t.alertType === "notification") {
-          showToast(`🔔 ${t.title}`);
-          if ("Notification" in window && Notification.permission === "granted") {
-            new Notification("Lembrete", { body: t.title });
-          }
-        } else if (t.alertType === "alarm") {
-          triggerAlarm(t);
-        }
-      }
-    }
-  }
-
-  function triggerAlarm(task) {
-    activeAlarmId = task.id;
-    document.getElementById("alarmTitle").textContent = task.title;
-    document.getElementById("alarmDue").textContent = task.dueDate ? `Prazo: ${formatDate(task.dueDate)}` : "";
-    openModal("alarmModal");
-
-    if ("Notification" in window && Notification.permission === "granted") {
-      new Notification("⏰ Despertador: " + task.title, { requireInteraction: true });
-    }
-
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === "suspended") audioCtx.resume();
-    stopAlarmBeep();
-
-    const beep = () => {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.frequency.setValueAtTime(880, audioCtx.currentTime);
-      osc.frequency.setValueAtTime(1100, audioCtx.currentTime + 0.15);
-      gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.45);
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + 0.45);
-    };
-    beep();
-    alarmTimer = setInterval(beep, 1200);
-  }
-
-  function stopAlarmBeep() {
-    if (alarmTimer) { clearInterval(alarmTimer); alarmTimer = null; }
-  }
-
-  function snoozeAlarm(mins) {
-    stopAlarmBeep();
-    closeModal("alarmModal");
-    const t = tasks.find(x => x.id === activeAlarmId);
-    if (t) {
-      t.alertTime = toLocalInput(new Date(Date.now() + mins * 60000));
-      t.alertTriggered = false;
-      pushToCloud();
-      showToast(`Adiado por ${mins} min`);
-    }
-    activeAlarmId = null;
-  }
-
-  function dismissAlarm() {
-    stopAlarmBeep();
-    closeModal("alarmModal");
-    activeAlarmId = null;
-  }
-
-  // --- AUXILIARES ---
-  function openModal(id) { document.getElementById(id).classList.add("open"); }
-  function closeModal(id) { document.getElementById(id).classList.remove("open"); }
-  function closeOnBackdrop(e, id) { if (e.target.id === id) closeModal(id); }
-
-  function formatDate(iso) {
-    if (!iso) return "";
-    const d = new Date(iso);
-    return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) + " " +
-           d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-  }
-
-  function toLocalInput(date) {
-    const p = n => String(n).padStart(2, "0");
-    return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())}T${p(date.getHours())}:${p(date.getMinutes())}`;
-  }
-
-  function escapeHtml(str) {
-    return String(str || "").replace(/[&<>"']/g, m => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-    }[m]));
-  }
-
-  function showToast(msg) {
-    const el = document.getElementById("toast");
-    el.textContent = msg;
-    el.style.display = "block";
-    clearTimeout(el._t);
-    el._t = setTimeout(() => { el.style.display = "none"; }, 3000);
-  }
-</script>
-</body>
-</html>
+    if (doneTasks.length >
