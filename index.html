@@ -42,7 +42,6 @@
       display: flex;
       align-items: center;
       z-index: 45;
-      pointer-events: auto;
     }
 
     .icon-btn {
@@ -50,7 +49,7 @@
       height: 36px;
       border-radius: 50%;
       border: none;
-      background: rgba(246, 246, 246, 0.78);
+      background: rgba(246, 246, 246, 0.82);
       backdrop-filter: blur(6px);
       -webkit-backdrop-filter: blur(6px);
       color: var(--text-heading);
@@ -59,9 +58,10 @@
       justify-content: center;
       cursor: pointer;
       position: relative;
-      transition: background 0.15s, color 0.15s;
+      transition: background 0.15s, color 0.15s, transform 0.12s;
     }
     .icon-btn:hover { background: rgba(0, 0, 0, 0.07); }
+    .icon-btn:active { transform: scale(0.95); }
 
     .modal-gear-btn {
       width: 32px;
@@ -154,7 +154,6 @@
     .task-row.completed { opacity: 0.6; }
     .task-row.completed .task-title { text-decoration: line-through; }
 
-    /* Itens com estrela: evita seleção de texto ao segurar no celular */
     .task-row[data-starred="true"] {
       -webkit-user-select: none;
       user-select: none;
@@ -180,6 +179,7 @@
       background: var(--surface);
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
       transform: scale(1.01);
+      z-index: 5;
     }
     .task-row.drag-over-top { box-shadow: inset 0 2px 0 0 var(--text-heading); }
     .task-row.drag-over-bottom { box-shadow: inset 0 -2px 0 0 var(--text-heading); }
@@ -208,9 +208,7 @@
       background: rgba(22, 163, 74, 0.08);
       color: var(--green);
     }
-    .check-btn:hover svg {
-      opacity: 1;
-    }
+    .check-btn:hover svg { opacity: 1; }
 
     .task-content {
       flex: 1;
@@ -259,12 +257,8 @@
       color: var(--text-heading);
       background: rgba(0, 0, 0, 0.04);
     }
-    .star-btn.active {
-      color: var(--star-active);
-    }
-    .star-btn.active:hover {
-      color: #000000;
-    }
+    .star-btn.active { color: var(--star-active); }
+    .star-btn.active:hover { color: #000000; }
 
     /* Modais (Clean Light) */
     .modal-backdrop {
@@ -272,6 +266,7 @@
       inset: 0;
       background: rgba(15, 23, 42, 0.35);
       backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
       display: none;
       align-items: center;
       justify-content: center;
@@ -469,6 +464,13 @@
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
     }
 
+    /* Em telas estreitas, garante que o + flutuante não cubra a estrela do 1º item */
+    @media (max-width: 720px) {
+      #taskList .task-row:first-child {
+        padding-right: 48px;
+      }
+    }
+
     @media (max-width: 540px) {
       main { padding: 14px 14px 70px; }
       .top-actions { top: 14px; right: 16px; }
@@ -617,12 +619,12 @@
   <div class="modal-box">
     <div class="modal-header">
       <h3>Detalhes</h3>
-      <button type="button" class="close-x" onclick="closeModal('editModal')">✕</button>
+      <button type="button" class="close-x" onclick="closeEditModal()">✕</button>
     </div>
 
     <div class="field">
       <label>Título</label>
-      <input type="text" id="editTitle" onchange="saveEditChanges()" />
+      <input type="text" id="editTitle" oninput="scheduleEditSave()" onchange="saveEditChanges()" />
     </div>
 
     <label class="check-inline">
@@ -669,7 +671,7 @@
       </div>
       <div class="field">
         <label>Etiquetas</label>
-        <input type="text" id="editTags" placeholder="ex: trabalho, urgente" onchange="saveEditChanges()" />
+        <input type="text" id="editTags" placeholder="ex: trabalho, urgente" oninput="scheduleEditSave()" onchange="saveEditChanges()" />
       </div>
     </div>
 
@@ -716,7 +718,7 @@
           <button type="button" id="btnMdRead" onclick="setMdMode('read')">Visualizar</button>
         </div>
       </div>
-      <textarea id="editNotes" onchange="saveEditChanges()"></textarea>
+      <textarea id="editNotes" oninput="scheduleEditSave()" onchange="saveEditChanges()"></textarea>
       <div id="editNotesPreview" class="md-view" style="display:none;"></div>
     </div>
 
@@ -732,7 +734,7 @@
       <button type="button" class="btn btn-danger" onclick="deleteTask()">Excluir</button>
       <div style="display:flex; gap:8px;">
         <button type="button" id="toggleCompleteBtn" class="btn btn-green" onclick="toggleCompleteFromModal()">Concluir tarefa</button>
-        <button type="button" class="btn btn-dark" onclick="closeModal('editModal')">Fechar</button>
+        <button type="button" class="btn btn-dark" onclick="closeEditModal()">Fechar</button>
       </div>
     </div>
   </div>
@@ -794,11 +796,17 @@
   let tasks = JSON.parse(localStorage.getItem("tf_tasks") || "[]");
   let config = JSON.parse(localStorage.getItem("tf_config") || '{"url":"","token":""}');
   let currentEditId = null;
+  let editSaveTimer = null;
   let audioCtx = null;
   let alarmTimer = null;
   let activeAlarmId = null;
 
-  // Controle de Drag & Drop (Mouse e Press-and-Hold Touch)
+  // Fila de sincronização serializada (evita race conditions na planilha)
+  let syncDebounceTimer = null;
+  let isSyncInFlight = false;
+  let hasPendingSync = false;
+
+  // Controle de Drag & Drop otimizado (cache de retângulos + rAF)
   let draggedTaskId = null;
   let dropTargetId = null;
   let dropInsertAfter = false;
@@ -807,8 +815,12 @@
   let touchStartX = 0;
   let touchStartY = 0;
   let justDragged = false;
+  let dragRowMetrics = [];
+  let dragRafPending = false;
+  let lastPointerY = 0;
 
   window.addEventListener("DOMContentLoaded", () => {
+    normalizeStarOrder();
     renderAll();
 
     if ("Notification" in window && Notification.permission === "default") {
@@ -817,7 +829,43 @@
     if (config.url && config.token) {
       pullFromCloud();
     }
-    setInterval(checkAlerts, 10000);
+
+    setInterval(checkAlerts, 15000);
+
+    // Verifica alertas imediatamente ao voltar para a aba e envia pendências ao sair
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        checkAlerts();
+      } else if (document.visibilityState === "hidden" && (syncDebounceTimer || hasPendingSync)) {
+        clearTimeout(syncDebounceTimer);
+        syncDebounceTimer = null;
+        flushCloudSync(true);
+      }
+    });
+
+    // Atalhos globais de teclado (Esc para fechar modais, Ctrl+Enter para salvar)
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        const gear = document.getElementById("gearMenu");
+        if (gear.classList.contains("open")) {
+          gear.classList.remove("open");
+          return;
+        }
+        if (document.getElementById("createModal").classList.contains("open")) closeModal("createModal");
+        else if (document.getElementById("editModal").classList.contains("open")) closeEditModal();
+        else if (document.getElementById("completedModal").classList.contains("open")) closeModal("completedModal");
+        else if (document.getElementById("configModal").classList.contains("open")) closeModal("configModal");
+      } else if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        if (document.getElementById("createModal").classList.contains("open")) {
+          e.preventDefault();
+          document.querySelector("#createModal form").requestSubmit();
+        } else if (document.getElementById("editModal").classList.contains("open")) {
+          e.preventDefault();
+          closeEditModal();
+        }
+      }
+    });
+
     document.addEventListener("click", (e) => {
       if (!e.target.closest("#gearBtn") && !e.target.closest("#gearMenu")) {
         document.getElementById("gearMenu").classList.remove("open");
@@ -855,9 +903,12 @@
     pullFromCloud();
   }
 
-  // --- NUVEM (GOOGLE APPS SCRIPT) ---
+  // --- NUVEM (GOOGLE APPS SCRIPT COM FILA SERIALIZADA) ---
   async function pullFromCloud() {
     if (!config.url || !config.token) return;
+    if (syncDebounceTimer || isSyncInFlight || hasPendingSync) {
+      await flushCloudSync(false);
+    }
     try {
       const res = await fetch(config.url, {
         method: "POST",
@@ -867,6 +918,7 @@
       const data = await res.json();
       if (data.status === "ok" && Array.isArray(data.tasks)) {
         tasks = data.tasks;
+        normalizeStarOrder();
         localStorage.setItem("tf_tasks", JSON.stringify(tasks));
         renderAll();
         if (document.getElementById("completedModal").classList.contains("open")) {
@@ -881,17 +933,45 @@
     }
   }
 
-  async function pushToCloud() {
+  function pushToCloud(immediate = false) {
     localStorage.setItem("tf_tasks", JSON.stringify(tasks));
     if (!config.url || !config.token) return;
+
+    hasPendingSync = true;
+    clearTimeout(syncDebounceTimer);
+
+    if (immediate) {
+      syncDebounceTimer = null;
+      flushCloudSync(false);
+    } else {
+      syncDebounceTimer = setTimeout(() => {
+        syncDebounceTimer = null;
+        flushCloudSync(false);
+      }, 750);
+    }
+  }
+
+  async function flushCloudSync(useKeepalive) {
+    if (!config.url || !config.token || !hasPendingSync) return;
+    if (isSyncInFlight && !useKeepalive) return;
+
+    isSyncInFlight = true;
+    hasPendingSync = false;
+
     try {
       await fetch(config.url, {
         method: "POST",
+        keepalive: !!useKeepalive,
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ token: config.token, action: "syncAll", tasks })
       });
     } catch {
-      // Mantém salvo localmente se estiver offline
+      // Permanece salvo no localStorage
+    } finally {
+      isSyncInFlight = false;
+      if (hasPendingSync && !useKeepalive) {
+        flushCloudSync(false);
+      }
     }
   }
 
@@ -924,7 +1004,7 @@
     openModal("createModal");
     const box = document.querySelector("#createModal .modal-box");
     if (box) box.scrollTop = 0;
-    setTimeout(() => document.getElementById("newTitle").focus(), 60);
+    setTimeout(() => document.getElementById("newTitle").focus(), 50);
   }
 
   function toggleNewRecFields() {
@@ -933,11 +1013,15 @@
     document.getElementById("newRecIntervalWrap").style.display = mode === "completion" ? "flex" : "none";
   }
 
-  function getMinFocusOrder() {
-    const orders = tasks
-      .filter(t => !t.completed && t.isMyDay && typeof t.focusOrder === "number")
-      .map(t => t.focusOrder);
-    return orders.length ? Math.min(...orders) - 1 : 0;
+  function normalizeStarOrder() {
+    const starred = sortStarredTasks(tasks.filter(t => !t.completed && t.isMyDay));
+    starred.forEach((t, idx) => { t.focusOrder = idx; });
+  }
+
+  function promoteToTopStar(task) {
+    task.isMyDay = true;
+    task.focusOrder = -1;
+    normalizeStarOrder();
   }
 
   function handleCreateTask(e) {
@@ -958,7 +1042,7 @@
       priority: parseInt(document.getElementById("newPriority").value, 10),
       dueDate,
       isMyDay,
-      focusOrder: isMyDay ? getMinFocusOrder() : null,
+      focusOrder: isMyDay ? -1 : null,
       alertType,
       alertTime,
       alertTriggered: false,
@@ -975,6 +1059,7 @@
     };
 
     tasks.unshift(task);
+    if (isMyDay) normalizeStarOrder();
     closeModal("createModal");
     renderAll();
     pushToCloud();
@@ -985,8 +1070,13 @@
     e.stopPropagation();
     const t = tasks.find(x => x.id === id);
     if (!t) return;
-    t.isMyDay = !t.isMyDay;
-    if (t.isMyDay) t.focusOrder = getMinFocusOrder();
+    if (t.isMyDay) {
+      t.isMyDay = false;
+      t.focusOrder = null;
+      normalizeStarOrder();
+    } else {
+      promoteToTopStar(t);
+    }
     renderAll();
     pushToCloud();
   }
@@ -1010,6 +1100,7 @@
 
     t.completed = !t.completed;
     t.completedAt = t.completed ? new Date().toISOString() : null;
+    normalizeStarOrder();
 
     if (t.completed && t.recurrence && t.recurrence.mode !== "none") {
       spawnNextRecurrence(t);
@@ -1025,9 +1116,12 @@
 
   function toggleCompleteFromModal() {
     if (!currentEditId) return;
+    clearTimeout(editSaveTimer);
+    saveEditChanges();
     const t = tasks.find(x => x.id === currentEditId);
     const wasCompleted = t ? t.completed : false;
     if (toggleCompleteById(currentEditId)) {
+      currentEditId = null;
       closeModal("editModal");
       showToast(wasCompleted ? "Tarefa reaberta" : "Tarefa concluída");
     }
@@ -1080,6 +1174,7 @@
     clone.subtasks = (clone.subtasks || []).map(s => ({ ...s, completed: false }));
 
     tasks.unshift(clone);
+    if (clone.isMyDay) normalizeStarOrder();
     showToast(`Próxima ocorrência: ${formatDate(nextDue)}`);
   }
 
@@ -1123,8 +1218,11 @@
 
     document.getElementById("menuCompletedCount").textContent = doneCount;
 
+    const todayLocalStr = toLocalInput(new Date()).slice(0, 10);
+    const nowMs = Date.now();
+
     document.getElementById("taskList").innerHTML = allActive.length
-      ? allActive.map(t => renderRow(t, !!t.isMyDay)).join("")
+      ? allActive.map(t => renderRow(t, !!t.isMyDay, todayLocalStr, nowMs)).join("")
       : `<div class="empty-msg">Nenhuma tarefa pendente</div>`;
   }
 
@@ -1137,17 +1235,15 @@
       : `<div class="empty-msg">Nenhuma tarefa concluída</div>`;
   }
 
-  function renderRow(t, isStarred) {
+  function renderRow(t, isStarred, todayLocalStr, nowMs) {
     const blocked = isTaskBlocked(t);
     const pred = blocked ? tasks.find(x => x.id === t.dependsOn) : null;
     const metas = [];
 
     if (blocked) metas.push(`<span class="meta-blocked">Bloqueada: ${escapeHtml(pred ? pred.title : "anterior")}</span>`);
     if (t.dueDate) {
-      const d = new Date(t.dueDate);
-      const now = new Date();
-      const isToday = t.dueDate.slice(0, 10) === now.toISOString().slice(0, 10);
-      const isOverdue = !t.completed && d < now;
+      const isToday = t.dueDate.slice(0, 10) === todayLocalStr;
+      const isOverdue = !t.completed && new Date(t.dueDate).getTime() < nowMs;
       const cls = isOverdue ? "meta-overdue" : (isToday ? "meta-today" : "");
       metas.push(`<span class="${cls}">${formatDate(t.dueDate)}</span>`);
     }
@@ -1172,9 +1268,8 @@
          data-id="${t.id}"
          ondragstart="onDragStart(event, '${t.id}')"
          ondragover="onDragOver(event, '${t.id}')"
-         ondragleave="onDragLeave(event)"
-         ondrop="onDrop(event, '${t.id}')"
-         ondragend="onDragEnd(event)"
+         ondrop="onDrop(event)"
+         ondragend="onDragEnd()"
          ontouchstart="onRowTouchStart(event, '${t.id}')"
          ontouchmove="onRowTouchMove(event)"
          ontouchend="onRowTouchEnd()"
@@ -1227,11 +1322,41 @@
     openEditModal(id);
   }
 
-  // --- DRAG & DROP (MOUSE + PRESS-AND-HOLD TOUCH NA TAREFA) ---
+  // --- DRAG & DROP OTIMIZADO (CACHE DE MÉTRICAS + rAF) ---
+  function cacheStarredMetrics() {
+    dragRowMetrics = [];
+    document.querySelectorAll('#taskList .task-row[data-starred="true"]').forEach(el => {
+      const rect = el.getBoundingClientRect();
+      dragRowMetrics.push({
+        id: el.dataset.id,
+        el,
+        top: rect.top,
+        bottom: rect.bottom,
+        midY: rect.top + rect.height / 2
+      });
+    });
+  }
+
   function clearDragIndicators() {
     document.querySelectorAll("#taskList .task-row").forEach(el => {
       el.classList.remove("drag-over-top", "drag-over-bottom", "dragging");
     });
+  }
+
+  function updateDragVisuals() {
+    dragRafPending = false;
+    if (!draggedTaskId) return;
+
+    dropTargetId = null;
+    for (const item of dragRowMetrics) {
+      item.el.classList.remove("drag-over-top", "drag-over-bottom");
+      if (item.id === draggedTaskId) continue;
+      if (lastPointerY >= item.top && lastPointerY <= item.bottom) {
+        dropTargetId = item.id;
+        dropInsertAfter = lastPointerY > item.midY;
+        item.el.classList.add(dropInsertAfter ? "drag-over-bottom" : "drag-over-top");
+      }
+    }
   }
 
   function applyFocusReorder(sourceId, targetId, insertAfter) {
@@ -1259,49 +1384,43 @@
       return;
     }
     draggedTaskId = id;
+    cacheStarredMetrics();
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", id);
     requestAnimationFrame(() => e.target.classList.add("dragging"));
   }
 
-  function onDragOver(e, targetId) {
+  function onDragOver(e) {
     e.preventDefault();
-    if (!draggedTaskId || draggedTaskId === targetId) return;
-    const row = e.currentTarget;
-    const rect = row.getBoundingClientRect();
-    const after = (e.clientY - rect.top) > rect.height / 2;
-
-    clearDragIndicators();
-    const draggingEl = document.querySelector(`#taskList .task-row[data-id="${draggedTaskId}"]`);
-    if (draggingEl) draggingEl.classList.add("dragging");
-
-    dropTargetId = targetId;
-    dropInsertAfter = after;
-    row.classList.add(after ? "drag-over-bottom" : "drag-over-top");
+    if (!draggedTaskId) return;
+    lastPointerY = e.clientY;
+    if (!dragRafPending) {
+      dragRafPending = true;
+      requestAnimationFrame(updateDragVisuals);
+    }
   }
 
-  function onDragLeave(e) {
-    e.currentTarget.classList.remove("drag-over-top", "drag-over-bottom");
-  }
-
-  function onDrop(e, targetId) {
+  function onDrop(e) {
     e.preventDefault();
     const src = draggedTaskId;
+    const tgt = dropTargetId;
     const after = dropInsertAfter;
     clearDragIndicators();
     draggedTaskId = null;
     dropTargetId = null;
+    dragRowMetrics = [];
     justDragged = true;
-    setTimeout(() => { justDragged = false; }, 250);
-    applyFocusReorder(src, targetId, after);
+    setTimeout(() => { justDragged = false; }, 220);
+    if (src && tgt) applyFocusReorder(src, tgt, after);
   }
 
   function onDragEnd() {
     clearDragIndicators();
     draggedTaskId = null;
     dropTargetId = null;
+    dragRowMetrics = [];
     justDragged = true;
-    setTimeout(() => { justDragged = false; }, 250);
+    setTimeout(() => { justDragged = false; }, 220);
   }
 
   // Mobile / Touch (Segurar apertado por ~280ms e arrastar)
@@ -1320,6 +1439,7 @@
       isTouchDragging = true;
       draggedTaskId = id;
       justDragged = true;
+      cacheStarredMetrics();
       rowEl.classList.add("dragging");
       if (navigator.vibrate) navigator.vibrate(25);
     }, 280);
@@ -1335,21 +1455,10 @@
     }
 
     e.preventDefault();
-    const elUnder = document.elementFromPoint(touch.clientX, touch.clientY);
-    const targetRow = elUnder ? elUnder.closest('#taskList .task-row[data-starred="true"]') : null;
-
-    clearDragIndicators();
-    const draggingEl = document.querySelector(`#taskList .task-row[data-id="${draggedTaskId}"]`);
-    if (draggingEl) draggingEl.classList.add("dragging");
-
-    if (targetRow && targetRow.dataset.id !== draggedTaskId) {
-      const rect = targetRow.getBoundingClientRect();
-      const after = (touch.clientY - rect.top) > rect.height / 2;
-      dropTargetId = targetRow.dataset.id;
-      dropInsertAfter = after;
-      targetRow.classList.add(after ? "drag-over-bottom" : "drag-over-top");
-    } else {
-      dropTargetId = null;
+    lastPointerY = touch.clientY;
+    if (!dragRafPending) {
+      dragRafPending = true;
+      requestAnimationFrame(updateDragVisuals);
     }
   }
 
@@ -1365,8 +1474,9 @@
     isTouchDragging = false;
     draggedTaskId = null;
     dropTargetId = null;
+    dragRowMetrics = [];
 
-    setTimeout(() => { justDragged = false; }, 350);
+    setTimeout(() => { justDragged = false; }, 320);
     if (src && tgt) applyFocusReorder(src, tgt, after);
   }
 
@@ -1411,6 +1521,24 @@
     openModal("editModal");
   }
 
+  function closeEditModal() {
+    if (editSaveTimer) {
+      clearTimeout(editSaveTimer);
+      editSaveTimer = null;
+      saveEditChanges();
+    }
+    currentEditId = null;
+    closeModal("editModal");
+  }
+
+  function scheduleEditSave() {
+    clearTimeout(editSaveTimer);
+    editSaveTimer = setTimeout(() => {
+      editSaveTimer = null;
+      saveEditChanges();
+    }, 350);
+  }
+
   function toggleEditRecFields() {
     const mode = document.getElementById("editRecMode").value;
     document.getElementById("editRecTypeWrap").style.display = mode === "calendar" ? "flex" : "none";
@@ -1423,8 +1551,14 @@
 
     const wasMyDay = !!t.isMyDay;
     t.title = document.getElementById("editTitle").value.trim() || t.title;
-    t.isMyDay = document.getElementById("editIsToday").checked;
-    if (t.isMyDay && !wasMyDay) t.focusOrder = getMinFocusOrder();
+    const nextIsMyDay = document.getElementById("editIsToday").checked;
+    if (nextIsMyDay && !wasMyDay) {
+      promoteToTopStar(t);
+    } else if (!nextIsMyDay && wasMyDay) {
+      t.isMyDay = false;
+      t.focusOrder = null;
+      normalizeStarOrder();
+    }
 
     t.priority = parseInt(document.getElementById("editPriority").value, 10);
     t.dueDate = document.getElementById("editDue").value;
@@ -1451,7 +1585,11 @@
 
   function deleteTask() {
     if (!currentEditId) return;
+    clearTimeout(editSaveTimer);
+    editSaveTimer = null;
     tasks = tasks.filter(x => x.id !== currentEditId);
+    currentEditId = null;
+    normalizeStarOrder();
     closeModal("editModal");
     renderAll();
     if (document.getElementById("completedModal").classList.contains("open")) {
@@ -1514,6 +1652,11 @@
       ta.style.display = "block";
       prev.style.display = "none";
     } else {
+      if (editSaveTimer) {
+        clearTimeout(editSaveTimer);
+        editSaveTimer = null;
+        saveEditChanges();
+      }
       ta.style.display = "none";
       prev.style.display = "block";
       prev.innerHTML = renderMarkdown(ta.value);
@@ -1527,7 +1670,9 @@
     html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
     html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
     html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
-    html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+    html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (_, label, url) =>
+      `<a href="${sanitizeUrl(url)}" target="_blank" rel="noopener noreferrer">${label}</a>`
+    );
     html = html.replace(/^\s*-\s+(.*)$/gm, "<li>$1</li>");
     html = html.replace(/(<li>.*<\/li>)/s, "<ul>$1</ul>");
     return html.replace(/\n/g, "<br>");
@@ -1537,7 +1682,7 @@
   function renderAttachments(t) {
     document.getElementById("attachmentsList").innerHTML = (t.attachments || []).map((a, idx) => `
       <div class="item-chip">
-        <a href="${a.url}" target="_blank" rel="noopener" style="color:var(--accent); text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+        <a href="${sanitizeUrl(a.url)}" target="_blank" rel="noopener noreferrer" style="color:var(--accent); text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
           ${escapeHtml(a.name)}
         </a>
         <button type="button" class="close-x" onclick="removeAttachment(${idx})">✕</button>
@@ -1603,12 +1748,14 @@
 
   // --- ALERTAS & DESPERTADOR ---
   function checkAlerts() {
-    const now = new Date();
+    const nowMs = Date.now();
+    let changed = false;
+
     for (const t of tasks) {
       if (t.completed || t.alertTriggered || t.alertType === "none" || !t.alertTime) continue;
-      if (now >= new Date(t.alertTime)) {
+      if (nowMs >= new Date(t.alertTime).getTime()) {
         t.alertTriggered = true;
-        pushToCloud();
+        changed = true;
         if (t.alertType === "notification") {
           showToast(t.title);
           if ("Notification" in window && Notification.permission === "granted") {
@@ -1619,6 +1766,8 @@
         }
       }
     }
+
+    if (changed) pushToCloud(true);
   }
 
   function triggerAlarm(task) {
@@ -1646,6 +1795,7 @@
       gain.connect(audioCtx.destination);
       osc.start();
       osc.stop(audioCtx.currentTime + 0.45);
+      osc.onended = () => { osc.disconnect(); gain.disconnect(); };
     };
     beep();
     alarmTimer = setInterval(beep, 1200);
@@ -1662,7 +1812,7 @@
     if (t) {
       t.alertTime = toLocalInput(new Date(Date.now() + mins * 60000));
       t.alertTriggered = false;
-      pushToCloud();
+      pushToCloud(true);
       showToast(`Adiado por ${mins} min`);
     }
     activeAlarmId = null;
@@ -1677,7 +1827,11 @@
   // --- AUXILIARES ---
   function openModal(id) { document.getElementById(id).classList.add("open"); }
   function closeModal(id) { document.getElementById(id).classList.remove("open"); }
-  function closeOnBackdrop(e, id) { if (e.target.id === id) closeModal(id); }
+  function closeOnBackdrop(e, id) {
+    if (e.target.id !== id) return;
+    if (id === "editModal") closeEditModal();
+    else closeModal(id);
+  }
 
   function formatDate(iso) {
     if (!iso) return "";
@@ -1695,6 +1849,11 @@
     return String(str || "").replace(/[&<>"']/g, m => ({
       "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
     }[m]));
+  }
+
+  function sanitizeUrl(url) {
+    const clean = String(url || "").trim();
+    return /^https?:\/\//i.test(clean) ? escapeHtml(clean) : "#";
   }
 
   function showToast(msg) {
