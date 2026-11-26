@@ -521,11 +521,11 @@
     </div>
 
     <div class="field">
-      <input type="text" id="newTitle" placeholder="O que precisa ser feito?" aria-label="Título" required onkeydown="if(event.key==='Enter'){event.preventDefault();this.form.requestSubmit();}" />
+      <input type="text" id="newTitle" enterkeyhint="done" placeholder="O que precisa ser feito?" aria-label="Título" required onkeydown="if(event.key==='Enter'||event.keyCode===13){event.preventDefault();this.blur();this.form.requestSubmit();}" />
     </div>
 
     <div class="field">
-      <select id="newPriority" aria-label="Prioridade">
+      <select id="newPriority" tabindex="-1" aria-label="Prioridade">
         <option value="1">Urgente</option>
         <option value="2">Alta</option>
         <option value="3" selected>Normal</option>
@@ -1019,8 +1019,11 @@
 
   function handleCreateTask(e) {
     e.preventDefault();
-    const title = document.getElementById("newTitle").value.trim();
+    const titleInput = document.getElementById("newTitle");
+    const title = titleInput.value.trim();
     if (!title) return;
+
+    titleInput.blur();
 
     const dueDate = document.getElementById("newDue").value;
     const alertType = document.getElementById("newAlertType").value;
