@@ -3,7 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f6f6f6" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Tarefas" />
   <title>Tarefas</title>
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%23111111'/%3E%3Cpolyline points='150 265 225 340 366 185' fill='none' stroke='%23ffffff' stroke-width='44' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" />
   <style>
     :root {
       --bg: #f6f6f6;
@@ -514,6 +521,7 @@
           </button>
           <button type="button" onclick="openConfigFromMenu()">Nuvem</button>
           <button type="button" onclick="syncFromMenu()">Sincronizar</button>
+          <button type="button" id="installAppBtn" style="display:none;" onclick="installPwaFromMenu()">Instalar app</button>
         </div>
 
         <button type="button" class="close-x" onclick="closeModal('createModal')">✕</button>
@@ -793,11 +801,12 @@
   let audioCtx = null;
   let alarmTimer = null;
   let activeAlarmId = null;
+  let deferredInstallPrompt = null;
 
   // Fila de sincronização serializada (evita race conditions na planilha)
   let syncDebounceTimer = null;
   let isSyncInFlight = false;
-  let hasPendingSync = false;
+  let hasPendingSync = localStorage.getItem("tf_dirty") === "1";
 
   // Controle de Drag & Drop otimizado (cache de retângulos + rAF)
   let draggedTaskId = null;
@@ -812,6 +821,28 @@
   let dragRafPending = false;
   let lastPointerY = 0;
 
+  // Registro do Service Worker para execução offline no Android
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
+    });
+  }
+
+  // Captura o prompt de instalação do Android/Chrome
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    const btn = document.getElementById("installAppBtn");
+    if (btn) btn.style.display = "flex";
+  });
+
+  window.addEventListener("appinstalled", () => {
+    deferredInstallPrompt = null;
+    const btn = document.getElementById("installAppBtn");
+    if (btn) btn.style.display = "none";
+    showToast("Aplicativo instalado");
+  });
+
   window.addEventListener("DOMContentLoaded", () => {
     normalizeStarOrder();
     renderAll();
@@ -819,11 +850,18 @@
     if ("Notification" in window && Notification.permission === "default") {
       Notification.requestPermission();
     }
-    if (config.url && config.token) {
-      pullFromCloud();
+    if (config.url && config.token && navigator.onLine) {
+      pullFromCloud(true);
     }
 
     setInterval(checkAlerts, 15000);
+
+    // Sincroniza automaticamente quando o Android recupera conexão
+    window.addEventListener("online", () => {
+      if (config.url && config.token) {
+        pullFromCloud(true);
+      }
+    });
 
     // Verifica alertas imediatamente ao voltar para a aba e envia pendências ao sair
     document.addEventListener("visibilitychange", () => {
@@ -893,15 +931,37 @@
   function syncFromMenu() {
     document.getElementById("gearMenu").classList.remove("open");
     if (!config.url || !config.token) return openConfigFromMenu();
-    pullFromCloud();
+    pullFromCloud(false);
   }
 
-  // --- NUVEM (GOOGLE APPS SCRIPT COM FILA SERIALIZADA) ---
-  async function pullFromCloud() {
+  async function installPwaFromMenu() {
+    document.getElementById("gearMenu").classList.remove("open");
+    closeModal("createModal");
+    if (!deferredInstallPrompt) return;
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    if (outcome === "accepted") {
+      deferredInstallPrompt = null;
+      document.getElementById("installAppBtn").style.display = "none";
+    }
+  }
+
+  // --- NUVEM (GOOGLE APPS SCRIPT COM FILA SERIALIZADA E PROTEÇÃO OFFLINE) ---
+  async function pullFromCloud(silent = false) {
     if (!config.url || !config.token) return;
-    if (syncDebounceTimer || isSyncInFlight || hasPendingSync) {
+    if (!navigator.onLine) {
+      if (!silent) showToast("Modo offline");
+      return;
+    }
+
+    // Se há alterações feitas offline, envia antes de puxar da planilha
+    if (syncDebounceTimer || isSyncInFlight || hasPendingSync || localStorage.getItem("tf_dirty") === "1") {
+      clearTimeout(syncDebounceTimer);
+      syncDebounceTimer = null;
+      hasPendingSync = true;
       await flushCloudSync(false);
     }
+
     try {
       const res = await fetch(config.url, {
         method: "POST",
@@ -913,21 +973,23 @@
         tasks = data.tasks;
         normalizeStarOrder();
         localStorage.setItem("tf_tasks", JSON.stringify(tasks));
+        localStorage.removeItem("tf_dirty");
         renderAll();
         if (document.getElementById("completedModal").classList.contains("open")) {
           renderCompletedModal();
         }
-        showToast("Sincronizado");
-      } else {
+        if (!silent) showToast("Sincronizado");
+      } else if (!silent) {
         showToast("Erro: " + (data.message || "Falha ao sincronizar"));
       }
     } catch {
-      showToast("Sem conexão (modo local)");
+      if (!silent) showToast("Sem conexão (modo offline)");
     }
   }
 
   function pushToCloud(immediate = false) {
     localStorage.setItem("tf_tasks", JSON.stringify(tasks));
+    localStorage.setItem("tf_dirty", "1");
     if (!config.url || !config.token) return;
 
     hasPendingSync = true;
@@ -952,17 +1014,21 @@
     hasPendingSync = false;
 
     try {
-      await fetch(config.url, {
+      const res = await fetch(config.url, {
         method: "POST",
         keepalive: !!useKeepalive,
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ token: config.token, action: "syncAll", tasks })
       });
+      if (res && res.ok && !hasPendingSync) {
+        localStorage.removeItem("tf_dirty");
+      }
     } catch {
-      // Permanece salvo no localStorage
+      // Mantém tf_dirty="1" para sincronizar quando voltar a ficar online
+      hasPendingSync = true;
     } finally {
       isSyncInFlight = false;
-      if (hasPendingSync && !useKeepalive) {
+      if (hasPendingSync && !useKeepalive && navigator.onLine) {
         flushCloudSync(false);
       }
     }
@@ -973,7 +1039,7 @@
     config.token = document.getElementById("cfgToken").value.trim();
     localStorage.setItem("tf_config", JSON.stringify(config));
     closeModal("configModal");
-    pullFromCloud();
+    pullFromCloud(false);
   }
 
   // --- CADASTRO DE NOVA TAREFA (+) ---
@@ -1689,6 +1755,11 @@
     if (!file) return;
     if (!config.url || !config.token) {
       showToast("Configure a Nuvem primeiro");
+      e.target.value = "";
+      return;
+    }
+    if (!navigator.onLine) {
+      showToast("Anexos requerem internet");
       e.target.value = "";
       return;
     }
