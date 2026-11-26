@@ -15,7 +15,8 @@
       --text-heading: #4b5563;
       --text-muted: #888d96;
       --accent: #2563eb;
-      --star-active: #d97706;
+      --star-active: #111111;
+      --amber: #d97706;
       --p1: #dc2626;
       --p2: #f97316;
       --green: #16a34a;
@@ -33,7 +34,7 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    /* Botões flutuantes no canto superior direito */
+    /* Botões flutuantes em cima da lista no canto superior direito */
     .top-actions {
       position: fixed;
       top: 14px;
@@ -42,6 +43,7 @@
       align-items: center;
       gap: 6px;
       z-index: 45;
+      pointer-events: auto;
     }
 
     .icon-btn {
@@ -49,8 +51,9 @@
       height: 36px;
       border-radius: 50%;
       border: none;
-      background: rgba(246, 246, 246, 0.85);
-      backdrop-filter: blur(4px);
+      background: rgba(246, 246, 246, 0.78);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
       color: var(--text-heading);
       display: inline-flex;
       align-items: center;
@@ -59,24 +62,9 @@
       position: relative;
       transition: background 0.15s, color 0.15s;
     }
-    .icon-btn:hover { background: rgba(0, 0, 0, 0.06); }
+    .icon-btn:hover { background: rgba(0, 0, 0, 0.07); }
     .icon-btn.gear-btn { color: #9ca3af; }
     .icon-btn.gear-btn:hover { color: var(--text-heading); }
-
-    /* Indicador discreto de sincronização na engrenagem */
-    .sync-dot {
-      position: absolute;
-      top: 6px;
-      right: 6px;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: transparent;
-      transition: background 0.2s;
-    }
-    .sync-dot.ok { background: #22c55e; }
-    .sync-dot.syncing { background: #f59e0b; }
-    .sync-dot.err { background: #ef4444; }
 
     /* Menu Dropdown da Engrenagem */
     .gear-menu {
@@ -117,7 +105,7 @@
       color: var(--text-muted);
     }
 
-    /* Área Principal */
+    /* Área Principal (os botões flutuam por cima sem deslocar a lista) */
     main {
       max-width: 640px;
       margin: 0 auto;
@@ -233,11 +221,11 @@
     .task-submeta:empty { display: none; }
 
     .meta-overdue { color: var(--danger); font-weight: 500; }
-    .meta-today { color: var(--star-active); font-weight: 500; }
+    .meta-today { color: var(--amber); font-weight: 500; }
     .meta-blocked { color: var(--danger); }
     .meta-tag { color: var(--accent); }
 
-    /* Estrela à direita */
+    /* Estrela à direita (preenchimento preto quando ativa) */
     .star-btn {
       background: transparent;
       border: none;
@@ -256,7 +244,12 @@
       color: var(--text-heading);
       background: rgba(0, 0, 0, 0.04);
     }
-    .star-btn.active { color: var(--star-active); }
+    .star-btn.active {
+      color: var(--star-active);
+    }
+    .star-btn.active:hover {
+      color: #000000;
+    }
 
     /* Modais (Clean Light) */
     .modal-backdrop {
@@ -291,6 +284,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 8px;
     }
     .modal-header h3 {
       font-size: 1.05rem;
@@ -447,13 +441,9 @@
       box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
     }
 
-    /* Evita sobreposição dos botões + e engrenagem com as estrelas em telas menores */
-    @media (max-width: 840px) {
-      main { padding: 14px 96px 70px 14px; }
-      .top-actions { top: 12px; right: 12px; }
-    }
-
     @media (max-width: 540px) {
+      main { padding: 14px 14px 70px; }
+      .top-actions { top: 14px; right: 16px; }
       .field-row { grid-template-columns: 1fr; }
     }
   </style>
@@ -469,7 +459,6 @@
   </button>
 
   <button type="button" id="gearBtn" class="icon-btn gear-btn" onclick="toggleGearMenu(event)" title="Opções" aria-label="Opções">
-    <span id="syncDot" class="sync-dot"></span>
     <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="12" r="3"></circle>
       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
@@ -704,7 +693,7 @@
     <div class="field">
       <label>Anexos (Google Drive)</label>
       <input type="file" id="editFileInput" onchange="uploadAttachment(event)" />
-      <small id="uploadMsg" style="color:var(--star-active);"></small>
+      <small id="uploadMsg" style="color:var(--amber);"></small>
       <div id="attachmentsList" style="display:flex; flex-direction:column; gap:5px; margin-top:5px;"></div>
     </div>
 
@@ -723,7 +712,10 @@
   <div class="modal-box">
     <div class="modal-header">
       <h3 id="completedModalTitle">Concluídas (0)</h3>
-      <button type="button" class="close-x" onclick="closeModal('completedModal')">✕</button>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button type="button" id="clearCompletedBtn" class="btn btn-danger" style="padding:5px 10px; font-size:0.78rem; display:none;" onclick="clearAllCompleted()">Limpar todas</button>
+        <button type="button" class="close-x" onclick="closeModal('completedModal')">✕</button>
+      </div>
     </div>
     <div id="completedList" class="task-list"></div>
   </div>
@@ -831,13 +823,8 @@
   }
 
   // --- NUVEM (GOOGLE APPS SCRIPT) ---
-  function setSyncDot(state) {
-    document.getElementById("syncDot").className = "sync-dot " + state;
-  }
-
   async function pullFromCloud() {
     if (!config.url || !config.token) return;
-    setSyncDot("syncing");
     try {
       const res = await fetch(config.url, {
         method: "POST",
@@ -852,35 +839,26 @@
         if (document.getElementById("completedModal").classList.contains("open")) {
           renderCompletedModal();
         }
-        setSyncDot("ok");
         showToast("Sincronizado");
       } else {
-        setSyncDot("err");
         showToast("Erro: " + (data.message || "Falha ao sincronizar"));
       }
     } catch {
-      setSyncDot("err");
       showToast("Sem conexão (modo local)");
     }
   }
 
   async function pushToCloud() {
     localStorage.setItem("tf_tasks", JSON.stringify(tasks));
-    if (!config.url || !config.token) {
-      setSyncDot("");
-      return;
-    }
-    setSyncDot("syncing");
+    if (!config.url || !config.token) return;
     try {
-      const res = await fetch(config.url, {
+      await fetch(config.url, {
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ token: config.token, action: "syncAll", tasks })
       });
-      const data = await res.json();
-      setSyncDot(data.status === "ok" ? "ok" : "err");
     } catch {
-      setSyncDot("err");
+      // Mantém salvo localmente se estiver offline
     }
   }
 
@@ -1019,6 +997,18 @@
     }
   }
 
+  function clearAllCompleted() {
+    const doneCount = tasks.filter(t => t.completed).length;
+    if (!doneCount) return;
+    if (!confirm(`Remover todas as ${doneCount} tarefas concluídas?`)) return;
+
+    tasks = tasks.filter(t => !t.completed);
+    renderAll();
+    renderCompletedModal();
+    pushToCloud();
+    showToast("Tarefas concluídas removidas");
+  }
+
   function spawnNextRecurrence(task) {
     const rec = task.recurrence;
     let base = (rec.mode === "calendar" && task.dueDate) ? new Date(task.dueDate) : new Date();
@@ -1105,6 +1095,7 @@
   function renderCompletedModal() {
     const doneTasks = tasks.filter(t => t.completed);
     document.getElementById("completedModalTitle").textContent = `Concluídas (${doneTasks.length})`;
+    document.getElementById("clearCompletedBtn").style.display = doneTasks.length ? "inline-block" : "none";
     document.getElementById("completedList").innerHTML = doneTasks.length
       ? doneTasks.map(t => renderCompletedRow(t)).join("")
       : `<div class="empty-msg">Nenhuma tarefa concluída</div>`;
