@@ -3,130 +3,96 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Foco Agora</title>
+  <title>Tarefas</title>
   <style>
     :root {
-      --bg: #0b0f19;
-      --surface: #131926;
-      --surface-hover: #1a2234;
-      --border: #1f2937;
-      --text: #f3f4f6;
-      --text-muted: #9ca3af;
-      --green: #16a34a;
-      --green-hover: #15803d;
-      --primary: #3b82f6;
-      --myday: #f59e0b;
-      --p1: #ef4444;
+      --bg: #f6f6f6;
+      --surface: #ffffff;
+      --row-hover: rgba(0, 0, 0, 0.035);
+      --border: #e5e7eb;
+      --border-strong: #9ca3af;
+      --text: #333333;
+      --text-heading: #4b5563;
+      --text-muted: #888d96;
+      --accent: #2563eb;
+      --star-active: #d97706;
+      --p1: #dc2626;
       --p2: #f97316;
-      --p3: #3b82f6;
-      --p4: #4b5563;
-      --danger: #ef4444;
+      --green: #16a34a;
+      --danger: #dc2626;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
       background: var(--bg);
       color: var(--text);
       line-height: 1.5;
-      padding-bottom: 60px;
+      padding-bottom: 70px;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* Topo com "Foco Agora" centralizado na mesma linha dos botões */
-    header {
-      max-width: 720px;
-      margin: 0 auto;
-      padding: 20px 18px 14px;
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .header-center {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      white-space: nowrap;
-    }
-
-    .focus-heading {
-      font-size: 1.12rem;
-      font-weight: 700;
-      color: var(--myday);
-      letter-spacing: -0.01em;
-    }
-
-    .header-count {
-      font-size: 0.82rem;
-      color: var(--text-muted);
-      font-weight: 600;
-    }
-
-    .status-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #6b7280;
-      display: inline-block;
-      flex-shrink: 0;
-      transition: background 0.2s;
-    }
-    .status-dot.ok { background: #22c55e; }
-    .status-dot.syncing { background: #f59e0b; }
-    .status-dot.err { background: #ef4444; }
-
+    /* Botões flutuantes no canto superior direito */
     .top-actions {
-      justify-self: end;
+      position: fixed;
+      top: 14px;
+      right: 16px;
       display: flex;
       align-items: center;
-      gap: 8px;
-      position: relative;
+      gap: 6px;
+      z-index: 45;
     }
 
     .icon-btn {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--text);
-      font-size: 1.15rem;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: none;
+      background: rgba(246, 246, 246, 0.85);
+      backdrop-filter: blur(4px);
+      color: var(--text-heading);
       display: inline-flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: 0.15s;
+      position: relative;
+      transition: background 0.15s, color 0.15s;
     }
-    .icon-btn:hover { background: var(--surface-hover); }
+    .icon-btn:hover { background: rgba(0, 0, 0, 0.06); }
+    .icon-btn.gear-btn { color: #9ca3af; }
+    .icon-btn.gear-btn:hover { color: var(--text-heading); }
 
-    .icon-btn.btn-add {
-      background: var(--green);
-      border-color: var(--green);
-      color: #fff;
-      font-size: 1.45rem;
-      font-weight: 500;
-      line-height: 1;
+    /* Indicador discreto de sincronização na engrenagem */
+    .sync-dot {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: transparent;
+      transition: background 0.2s;
     }
-    .icon-btn.btn-add:hover { background: var(--green-hover); }
+    .sync-dot.ok { background: #22c55e; }
+    .sync-dot.syncing { background: #f59e0b; }
+    .sync-dot.err { background: #ef4444; }
 
     /* Menu Dropdown da Engrenagem */
     .gear-menu {
       position: absolute;
-      top: 46px;
+      top: 42px;
       right: 0;
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      min-width: 165px;
+      border-radius: 12px;
+      min-width: 170px;
       padding: 6px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.09);
       display: none;
       flex-direction: column;
       gap: 2px;
-      z-index: 40;
+      z-index: 50;
     }
     .gear-menu.open { display: flex; }
 
@@ -135,131 +101,112 @@
       border: none;
       color: var(--text);
       text-align: left;
-      padding: 10px 12px;
-      border-radius: 7px;
-      font-size: 0.9rem;
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 0.88rem;
       cursor: pointer;
       display: flex;
       align-items: center;
+      justify-content: space-between;
       gap: 8px;
     }
-    .gear-menu button:hover { background: var(--surface-hover); }
+    .gear-menu button:hover { background: var(--bg); }
+
+    .menu-badge {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
 
     /* Área Principal */
     main {
-      max-width: 720px;
-      margin: 6px auto;
-      padding: 0 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
+      max-width: 640px;
+      margin: 0 auto;
+      padding: 16px 20px 70px;
     }
-
-    .list-section {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    /* Botão de colapsar/expandir (Tarefas e Concluídas) */
-    .section-toggle {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      cursor: pointer;
-      align-self: flex-start;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 2px;
-      transition: color 0.15s;
-    }
-    .section-toggle:hover { color: var(--text); }
-
-    .completed-toggle {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      font-size: 0.83rem;
-      cursor: pointer;
-      align-self: flex-start;
-      padding: 4px 2px;
-      transition: color 0.15s;
-    }
-    .completed-toggle:hover { color: var(--text); }
 
     .task-list {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 2px;
     }
 
     .empty-msg {
-      color: #4b5563;
-      font-size: 0.88rem;
-      padding: 6px 2px;
+      color: #b0b5bd;
+      font-size: 0.9rem;
+      padding: 12px 6px;
     }
 
-    /* Cartão de Tarefa */
+    /* Linha de Tarefa Minimalista */
     .task-row {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--p4);
-      border-radius: 10px;
-      padding: 12px 14px;
+      position: relative;
       display: flex;
       align-items: center;
-      gap: 11px;
-      transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+      gap: 12px;
+      padding: 10px 10px;
+      border-radius: 10px;
+      transition: background 0.15s, opacity 0.15s, transform 0.15s, box-shadow 0.15s;
     }
-    .task-row:hover {
-      background: var(--surface-hover);
-      border-color: #374151;
-    }
-    .task-row.p-1 { border-left-color: var(--p1); }
-    .task-row.p-2 { border-left-color: var(--p2); }
-    .task-row.p-3 { border-left-color: var(--p3); }
-    .task-row.p-4 { border-left-color: var(--p4); }
-    .task-row.blocked { opacity: 0.7; border-style: dashed; }
-    .task-row.completed { opacity: 0.5; }
+    .task-row:hover { background: var(--row-hover); }
+    .task-row.blocked { opacity: 0.65; }
+    .task-row.completed { opacity: 0.6; }
     .task-row.completed .task-title { text-decoration: line-through; }
 
-    /* Alça e estados de Drag & Drop (Foco Agora) */
-    .drag-handle {
-      color: #4b5563;
-      cursor: grab;
-      font-size: 1rem;
-      line-height: 1;
-      padding: 4px 2px;
+    /* Itens com estrela: evita seleção de texto ao segurar no celular */
+    .task-row[data-starred="true"] {
+      -webkit-user-select: none;
       user-select: none;
-      touch-action: none;
-      flex-shrink: 0;
-      letter-spacing: -2px;
+      -webkit-touch-callout: none;
     }
-    .drag-handle:hover { color: var(--text-muted); }
-    .drag-handle:active { cursor: grabbing; }
 
+    /* Barra lateral fina de prioridade (P1/P2) */
+    .prio-bar {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 24px;
+      border-radius: 4px;
+    }
+    .prio-bar.p-1 { background: var(--p1); }
+    .prio-bar.p-2 { background: var(--p2); }
+
+    /* Estados visuais ao segurar e arrastar */
     .task-row.dragging {
-      opacity: 0.4;
-      border-color: var(--myday);
+      opacity: 0.55;
+      background: var(--surface);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+      transform: scale(1.01);
     }
-    .task-row.drag-over-top {
-      border-top: 2px solid var(--myday);
-    }
-    .task-row.drag-over-bottom {
-      border-bottom: 2px solid var(--myday);
-    }
+    .task-row.drag-over-top { box-shadow: inset 0 2px 0 0 var(--text-heading); }
+    .task-row.drag-over-bottom { box-shadow: inset 0 -2px 0 0 var(--text-heading); }
 
-    .task-check {
-      width: 19px;
-      height: 19px;
-      accent-color: var(--green);
+    /* Check mark minimalista na frente da tarefa */
+    .check-btn {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 1.4px solid #c2c6ce;
+      background: transparent;
+      color: #a6abb4;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
       flex-shrink: 0;
+      transition: border-color 0.15s, background 0.15s, color 0.15s;
+    }
+    .check-btn svg {
+      opacity: 0.55;
+      transition: opacity 0.15s;
+    }
+    .check-btn:hover {
+      border-color: var(--green);
+      background: rgba(22, 163, 74, 0.08);
+      color: var(--green);
+    }
+    .check-btn:hover svg {
+      opacity: 1;
     }
 
     .task-content {
@@ -269,44 +216,54 @@
     }
 
     .task-title {
-      font-size: 0.96rem;
-      font-weight: 500;
+      font-size: 1rem;
+      font-weight: 400;
+      color: var(--text);
       word-break: break-word;
     }
 
     .task-submeta {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 3px;
-      font-size: 0.76rem;
+      gap: 7px;
+      margin-top: 2px;
+      font-size: 0.74rem;
       color: var(--text-muted);
     }
     .task-submeta:empty { display: none; }
 
-    .meta-overdue { color: #f87171; font-weight: 500; }
-    .meta-today { color: #fbbf24; }
-    .meta-blocked { color: #fca5a5; }
-    .meta-tag { color: #60a5fa; }
+    .meta-overdue { color: var(--danger); font-weight: 500; }
+    .meta-today { color: var(--star-active); font-weight: 500; }
+    .meta-blocked { color: var(--danger); }
+    .meta-tag { color: var(--accent); }
 
+    /* Estrela à direita */
     .star-btn {
       background: transparent;
       border: none;
-      color: #4b5563;
-      font-size: 1.2rem;
+      color: #c2c6ce;
+      width: 30px;
+      height: 30px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       cursor: pointer;
-      padding: 2px 4px;
-      line-height: 1;
-      transition: color 0.15s;
+      flex-shrink: 0;
+      border-radius: 50%;
+      transition: color 0.15s, background 0.15s;
     }
-    .star-btn:hover { color: var(--text-muted); }
-    .star-btn.active { color: var(--myday); }
+    .star-btn:hover {
+      color: var(--text-heading);
+      background: rgba(0, 0, 0, 0.04);
+    }
+    .star-btn.active { color: var(--star-active); }
 
-    /* Modais */
+    /* Modais (Clean Light) */
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.75);
+      background: rgba(15, 23, 42, 0.35);
+      backdrop-filter: blur(2px);
       display: none;
       align-items: center;
       justify-content: center;
@@ -318,16 +275,16 @@
     .modal-box {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 14px;
+      border-radius: 16px;
       width: 100%;
-      max-width: 500px;
+      max-width: 480px;
       max-height: 90vh;
       overflow-y: auto;
       padding: 22px;
       display: flex;
       flex-direction: column;
       gap: 14px;
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.12);
     }
 
     .modal-header {
@@ -335,37 +292,43 @@
       justify-content: space-between;
       align-items: center;
     }
-    .modal-header h3 { font-size: 1.05rem; font-weight: 600; }
+    .modal-header h3 {
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: var(--text);
+    }
 
     .close-x {
       background: transparent;
       border: none;
       color: var(--text-muted);
-      font-size: 1.2rem;
+      font-size: 1.15rem;
       cursor: pointer;
       padding: 4px 8px;
+      border-radius: 6px;
     }
-    .close-x:hover { color: var(--text); }
+    .close-x:hover { background: var(--bg); color: var(--text); }
 
     .field { display: flex; flex-direction: column; gap: 5px; }
     .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    label { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
+    label { font-size: 0.78rem; color: var(--text-muted); font-weight: 500; }
 
     input[type="text"], input[type="number"], input[type="datetime-local"], select, textarea {
       background: var(--bg);
       border: 1px solid var(--border);
       color: var(--text);
       padding: 9px 11px;
-      border-radius: 8px;
+      border-radius: 9px;
       font-size: 0.9rem;
       font-family: inherit;
       width: 100%;
     }
     input:focus, select:focus, textarea:focus {
       outline: none;
-      border-color: var(--primary);
+      border-color: var(--text-heading);
+      background: #ffffff;
     }
-    textarea { min-height: 95px; resize: vertical; }
+    textarea { min-height: 90px; resize: vertical; }
 
     .check-inline {
       display: flex;
@@ -376,13 +339,18 @@
       cursor: pointer;
       user-select: none;
     }
+    .check-inline input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--text-heading);
+    }
 
     details.advanced-box {
       border-top: 1px solid var(--border);
       padding-top: 10px;
     }
     details.advanced-box summary {
-      font-size: 0.83rem;
+      font-size: 0.82rem;
       color: var(--text-muted);
       cursor: pointer;
       user-select: none;
@@ -396,27 +364,30 @@
     }
 
     .btn {
-      background: var(--surface-hover);
+      background: var(--bg);
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 9px 14px;
-      border-radius: 8px;
-      font-size: 0.88rem;
+      padding: 8px 14px;
+      border-radius: 9px;
+      font-size: 0.86rem;
       font-weight: 500;
       cursor: pointer;
+      transition: background 0.15s;
     }
-    .btn:hover { background: #263147; }
-    .btn-green { background: var(--green); border-color: var(--green); color: #fff; }
-    .btn-green:hover { background: var(--green-hover); }
-    .btn-primary { background: var(--primary); border-color: var(--primary); color: #fff; }
-    .btn-danger { background: rgba(239, 68, 68, 0.12); border-color: var(--danger); color: #fca5a5; }
-    .btn-danger:hover { background: var(--danger); color: #fff; }
+    .btn:hover { background: #eceef1; }
+    .btn-dark { background: #333333; border-color: #333333; color: #ffffff; }
+    .btn-dark:hover { background: #1f1f1f; }
+    .btn-green { background: var(--green); border-color: var(--green); color: #ffffff; }
+    .btn-green:hover { background: #15803d; }
+    .btn-danger { background: #fef2f2; border-color: #fecaca; color: var(--danger); }
+    .btn-danger:hover { background: var(--danger); color: #ffffff; }
 
     .modal-footer {
       display: flex;
       justify-content: flex-end;
       gap: 8px;
       margin-top: 4px;
+      flex-wrap: wrap;
     }
 
     /* Subtarefas, Markdown e Anexos */
@@ -427,7 +398,7 @@
       background: var(--bg);
       border: 1px solid var(--border);
       padding: 6px 10px;
-      border-radius: 7px;
+      border-radius: 8px;
       font-size: 0.85rem;
       gap: 8px;
     }
@@ -437,44 +408,49 @@
       border: 1px solid var(--border);
       color: var(--text-muted);
       padding: 2px 8px;
-      border-radius: 5px;
-      font-size: 0.75rem;
+      border-radius: 6px;
+      font-size: 0.74rem;
       cursor: pointer;
     }
-    .md-switch button.active { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .md-switch button.active { background: #333333; border-color: #333333; color: #ffffff; }
     .md-view {
       background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 9px;
       padding: 10px;
-      min-height: 95px;
+      min-height: 90px;
       font-size: 0.88rem;
     }
-    .md-view a { color: #60a5fa; }
-    .md-view code { background: #1f2937; padding: 2px 5px; border-radius: 4px; }
-    .md-view pre { background: #070a12; padding: 8px; border-radius: 6px; overflow-x: auto; margin: 5px 0; }
+    .md-view a { color: var(--accent); }
+    .md-view code { background: #e5e7eb; padding: 2px 5px; border-radius: 4px; }
+    .md-view pre { background: #f1f5f9; border: 1px solid var(--border); padding: 8px; border-radius: 6px; overflow-x: auto; margin: 5px 0; }
     .md-view ul { padding-left: 18px; }
 
     /* Alarme */
     .alarm-box {
-      border: 2px solid var(--danger);
-      box-shadow: 0 0 35px rgba(239, 68, 68, 0.45);
+      border: 1.5px solid var(--danger);
+      box-shadow: 0 15px 40px rgba(220, 38, 38, 0.18);
     }
 
     .toast {
       position: fixed;
-      bottom: 20px;
+      bottom: 22px;
       left: 50%;
       transform: translateX(-50%);
-      background: #1f2937;
-      border: 1px solid #374151;
-      color: var(--text);
-      padding: 9px 16px;
-      border-radius: 8px;
-      font-size: 0.85rem;
+      background: #333333;
+      color: #ffffff;
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-size: 0.82rem;
       z-index: 90;
       display: none;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    /* Evita sobreposição dos botões + e engrenagem com as estrelas em telas menores */
+    @media (max-width: 840px) {
+      main { padding: 14px 96px 70px 14px; }
+      .top-actions { top: 12px; right: 12px; }
     }
 
     @media (max-width: 540px) {
@@ -484,47 +460,34 @@
 </head>
 <body>
 
-<header>
-  <div></div>
+<div class="top-actions">
+  <button type="button" class="icon-btn" onclick="openCreateModal()" title="Nova Tarefa" aria-label="Nova Tarefa">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
+      <line x1="12" y1="5" x2="12" y2="19"></line>
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+    </svg>
+  </button>
 
-  <div class="header-center">
-    <span class="focus-heading">☀️ Foco Agora</span>
-    <span id="todayCount" class="header-count">0</span>
-    <span id="syncDot" class="status-dot" title="Modo Local"></span>
+  <button type="button" id="gearBtn" class="icon-btn gear-btn" onclick="toggleGearMenu(event)" title="Opções" aria-label="Opções">
+    <span id="syncDot" class="sync-dot"></span>
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="3"></circle>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    </svg>
+  </button>
+
+  <div id="gearMenu" class="gear-menu">
+    <button type="button" onclick="openCompletedFromMenu()">
+      <span>Concluídas</span>
+      <span id="menuCompletedCount" class="menu-badge">0</span>
+    </button>
+    <button type="button" onclick="openConfigFromMenu()">Nuvem</button>
+    <button type="button" onclick="syncFromMenu()">Sincronizar</button>
   </div>
-
-  <div class="top-actions">
-    <button type="button" class="icon-btn btn-add" onclick="openCreateModal()" title="Nova Tarefa">+</button>
-    <button type="button" id="gearBtn" class="icon-btn" onclick="toggleGearMenu(event)" title="Opções">⚙️</button>
-
-    <div id="gearMenu" class="gear-menu">
-      <button type="button" onclick="openConfigFromMenu()">☁️ Nuvem</button>
-      <button type="button" onclick="syncFromMenu()">🔄 Sincronizar</button>
-    </div>
-  </div>
-</header>
+</div>
 
 <main>
-  <!-- Lista: Foco Agora (com reordenação por arrastar e soltar) -->
-  <section class="list-section">
-    <div id="todayList" class="task-list"></div>
-  </section>
-
-  <!-- Lista: Tarefas (colapsável) -->
-  <section class="list-section">
-    <button type="button" id="toggleTasksBtn" class="section-toggle" onclick="toggleShowTasks()">
-      ▾ Tarefas (0)
-    </button>
-    <div id="generalList" class="task-list"></div>
-  </section>
-
-  <!-- Lista: Concluídas (colapsável) -->
-  <div id="completedArea" style="display:none; flex-direction:column; gap:10px;">
-    <button type="button" id="toggleCompletedBtn" class="completed-toggle" onclick="toggleShowCompleted()">
-      ▸ Mostrar concluídas (0)
-    </button>
-    <div id="completedList" class="task-list" style="display:none;"></div>
-  </div>
+  <div id="taskList" class="task-list"></div>
 </main>
 
 <!-- Modal: Nova Tarefa (+) -->
@@ -544,10 +507,10 @@
       <div class="field">
         <label>Prioridade</label>
         <select id="newPriority">
-          <option value="1">🔴 P1 - Urgente</option>
-          <option value="2">🟠 P2 - Alta</option>
-          <option value="3" selected>🔵 P3 - Média</option>
-          <option value="4">⚪ P4 - Baixa</option>
+          <option value="1">Urgente</option>
+          <option value="2">Alta</option>
+          <option value="3" selected>Normal</option>
+          <option value="4">Baixa</option>
         </select>
       </div>
       <div class="field">
@@ -557,7 +520,7 @@
     </div>
 
     <label class="check-inline">
-      <input type="checkbox" id="newIsToday" checked /> Adicionar em <strong>Foco Agora</strong>
+      <input type="checkbox" id="newIsToday" /> Destacar com estrela no topo
     </label>
 
     <details class="advanced-box">
@@ -568,8 +531,8 @@
             <label>Alerta / Despertador</label>
             <select id="newAlertType">
               <option value="none">Sem alerta</option>
-              <option value="notification">🔔 Notificação</option>
-              <option value="alarm">⏰ Despertador sonoro</option>
+              <option value="notification">Notificação</option>
+              <option value="alarm">Despertador sonoro</option>
             </select>
           </div>
           <div class="field">
@@ -624,16 +587,16 @@
 
     <div class="modal-footer">
       <button type="button" class="btn" onclick="closeModal('createModal')">Cancelar</button>
-      <button type="submit" class="btn btn-green">Salvar Tarefa</button>
+      <button type="submit" class="btn btn-dark">Salvar</button>
     </div>
   </form>
 </div>
 
-<!-- Modal: Editar / Detalhes da Tarefa -->
+<!-- Modal: Editar / Detalhes / Concluir Tarefa -->
 <div id="editModal" class="modal-backdrop" onclick="closeOnBackdrop(event, 'editModal')">
   <div class="modal-box">
     <div class="modal-header">
-      <h3>Detalhes da Tarefa</h3>
+      <h3>Detalhes</h3>
       <button type="button" class="close-x" onclick="closeModal('editModal')">✕</button>
     </div>
 
@@ -643,17 +606,17 @@
     </div>
 
     <label class="check-inline">
-      <input type="checkbox" id="editIsToday" onchange="saveEditChanges()" /> Exibir em <strong>Foco Agora</strong>
+      <input type="checkbox" id="editIsToday" onchange="saveEditChanges()" /> Destacar com estrela no topo
     </label>
 
     <div class="field-row">
       <div class="field">
         <label>Prioridade</label>
         <select id="editPriority" onchange="saveEditChanges()">
-          <option value="1">🔴 P1 - Urgente</option>
-          <option value="2">🟠 P2 - Alta</option>
-          <option value="3">🔵 P3 - Média</option>
-          <option value="4">⚪ P4 - Baixa</option>
+          <option value="1">Urgente</option>
+          <option value="2">Alta</option>
+          <option value="3">Normal</option>
+          <option value="4">Baixa</option>
         </select>
       </div>
       <div class="field">
@@ -667,8 +630,8 @@
         <label>Tipo de Alerta</label>
         <select id="editAlertType" onchange="saveEditChanges()">
           <option value="none">Sem alerta</option>
-          <option value="notification">🔔 Notificação</option>
-          <option value="alarm">⏰ Despertador sonoro</option>
+          <option value="notification">Notificação</option>
+          <option value="alarm">Despertador sonoro</option>
         </select>
       </div>
       <div class="field">
@@ -741,14 +704,28 @@
     <div class="field">
       <label>Anexos (Google Drive)</label>
       <input type="file" id="editFileInput" onchange="uploadAttachment(event)" />
-      <small id="uploadMsg" style="color:var(--myday);"></small>
+      <small id="uploadMsg" style="color:var(--star-active);"></small>
       <div id="attachmentsList" style="display:flex; flex-direction:column; gap:5px; margin-top:5px;"></div>
     </div>
 
     <div class="modal-footer" style="justify-content:space-between; border-top:1px solid var(--border); padding-top:12px;">
       <button type="button" class="btn btn-danger" onclick="deleteTask()">Excluir</button>
-      <button type="button" class="btn btn-primary" onclick="closeModal('editModal')">Concluir</button>
+      <div style="display:flex; gap:8px;">
+        <button type="button" id="toggleCompleteBtn" class="btn btn-green" onclick="toggleCompleteFromModal()">Concluir tarefa</button>
+        <button type="button" class="btn btn-dark" onclick="closeModal('editModal')">Fechar</button>
+      </div>
     </div>
+  </div>
+</div>
+
+<!-- Modal: Tarefas Concluídas (via Engrenagem) -->
+<div id="completedModal" class="modal-backdrop" onclick="closeOnBackdrop(event, 'completedModal')">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3 id="completedModalTitle">Concluídas (0)</h3>
+      <button type="button" class="close-x" onclick="closeModal('completedModal')">✕</button>
+    </div>
+    <div id="completedList" class="task-list"></div>
   </div>
 </div>
 
@@ -756,7 +733,7 @@
 <div id="configModal" class="modal-backdrop" onclick="closeOnBackdrop(event, 'configModal')">
   <div class="modal-box">
     <div class="modal-header">
-      <h3>☁️ Configuração da Nuvem</h3>
+      <h3>Configuração da Nuvem</h3>
       <button type="button" class="close-x" onclick="closeModal('configModal')">✕</button>
     </div>
     <div class="field">
@@ -769,7 +746,7 @@
     </div>
     <div class="modal-footer">
       <button type="button" class="btn" onclick="closeModal('configModal')">Cancelar</button>
-      <button type="button" class="btn btn-green" onclick="saveCloudConfig()">Salvar e Sincronizar</button>
+      <button type="button" class="btn btn-dark" onclick="saveCloudConfig()">Salvar e Sincronizar</button>
     </div>
   </div>
 </div>
@@ -777,13 +754,13 @@
 <!-- Modal: Despertador Sonoro -->
 <div id="alarmModal" class="modal-backdrop">
   <div class="modal-box alarm-box">
-    <div style="color:#fca5a5; font-weight:700; font-size:1.1rem;">⏰ DESPERTADOR</div>
-    <div id="alarmTitle" style="font-size:1.15rem; font-weight:600;"></div>
+    <div style="color:var(--danger); font-weight:600; font-size:0.95rem;">DESPERTADOR</div>
+    <div id="alarmTitle" style="font-size:1.15rem; font-weight:500;"></div>
     <div id="alarmDue" style="font-size:0.85rem; color:var(--text-muted);"></div>
     <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
       <button type="button" class="btn" onclick="snoozeAlarm(5)">Adiar 5 min</button>
       <button type="button" class="btn" onclick="snoozeAlarm(15)">Adiar 15 min</button>
-      <button type="button" class="btn btn-green" onclick="dismissAlarm()">Dispensar</button>
+      <button type="button" class="btn btn-dark" onclick="dismissAlarm()">Dispensar</button>
     </div>
   </div>
 </div>
@@ -794,19 +771,23 @@
   let tasks = JSON.parse(localStorage.getItem("tf_tasks") || "[]");
   let config = JSON.parse(localStorage.getItem("tf_config") || '{"url":"","token":""}');
   let currentEditId = null;
-  let showTasks = true;
-  let showCompleted = false;
   let audioCtx = null;
   let alarmTimer = null;
   let activeAlarmId = null;
 
-  // Estado de Drag & Drop (Foco Agora)
+  // Controle de Drag & Drop (Mouse e Press-and-Hold Touch)
   let draggedTaskId = null;
   let dropTargetId = null;
   let dropInsertAfter = false;
+  let longPressTimer = null;
+  let isTouchDragging = false;
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let justDragged = false;
 
   window.addEventListener("DOMContentLoaded", () => {
     renderAll();
+
     if ("Notification" in window && Notification.permission === "default") {
       Notification.requestPermission();
     }
@@ -830,6 +811,12 @@
     document.getElementById("gearMenu").classList.toggle("open");
   }
 
+  function openCompletedFromMenu() {
+    document.getElementById("gearMenu").classList.remove("open");
+    renderCompletedModal();
+    openModal("completedModal");
+  }
+
   function openConfigFromMenu() {
     document.getElementById("gearMenu").classList.remove("open");
     document.getElementById("cfgUrl").value = config.url || "";
@@ -844,15 +831,13 @@
   }
 
   // --- NUVEM (GOOGLE APPS SCRIPT) ---
-  function setSyncDot(state, title) {
-    const dot = document.getElementById("syncDot");
-    dot.className = "status-dot " + state;
-    dot.title = title;
+  function setSyncDot(state) {
+    document.getElementById("syncDot").className = "sync-dot " + state;
   }
 
   async function pullFromCloud() {
     if (!config.url || !config.token) return;
-    setSyncDot("syncing", "Sincronizando...");
+    setSyncDot("syncing");
     try {
       const res = await fetch(config.url, {
         method: "POST",
@@ -864,14 +849,17 @@
         tasks = data.tasks;
         localStorage.setItem("tf_tasks", JSON.stringify(tasks));
         renderAll();
-        setSyncDot("ok", "Sincronizado");
-        showToast("Sincronizado ✓");
+        if (document.getElementById("completedModal").classList.contains("open")) {
+          renderCompletedModal();
+        }
+        setSyncDot("ok");
+        showToast("Sincronizado");
       } else {
-        setSyncDot("err", data.message || "Erro na nuvem");
+        setSyncDot("err");
         showToast("Erro: " + (data.message || "Falha ao sincronizar"));
       }
-    } catch (err) {
-      setSyncDot("err", "Offline");
+    } catch {
+      setSyncDot("err");
       showToast("Sem conexão (modo local)");
     }
   }
@@ -879,10 +867,10 @@
   async function pushToCloud() {
     localStorage.setItem("tf_tasks", JSON.stringify(tasks));
     if (!config.url || !config.token) {
-      setSyncDot("", "Modo Local");
+      setSyncDot("");
       return;
     }
-    setSyncDot("syncing", "Salvando...");
+    setSyncDot("syncing");
     try {
       const res = await fetch(config.url, {
         method: "POST",
@@ -890,9 +878,9 @@
         body: JSON.stringify({ token: config.token, action: "syncAll", tasks })
       });
       const data = await res.json();
-      setSyncDot(data.status === "ok" ? "ok" : "err", data.status === "ok" ? "Sincronizado" : "Erro ao salvar");
-    } catch (err) {
-      setSyncDot("err", "Offline");
+      setSyncDot(data.status === "ok" ? "ok" : "err");
+    } catch {
+      setSyncDot("err");
     }
   }
 
@@ -909,7 +897,7 @@
     document.getElementById("newTitle").value = "";
     document.getElementById("newPriority").value = "3";
     document.getElementById("newDue").value = "";
-    document.getElementById("newIsToday").checked = true;
+    document.getElementById("newIsToday").checked = false;
     document.getElementById("newAlertType").value = "none";
     document.getElementById("newAlertTime").value = "";
     document.getElementById("newRecMode").value = "none";
@@ -978,29 +966,32 @@
     pushToCloud();
   }
 
-  // --- AÇÕES RÁPIDAS ---
-  function toggleToday(id, e) {
+  // --- AÇÕES ---
+  function toggleStar(id, e) {
     e.stopPropagation();
     const t = tasks.find(x => x.id === id);
     if (!t) return;
     t.isMyDay = !t.isMyDay;
-    if (t.isMyDay) {
-      t.focusOrder = getMinFocusOrder();
-    }
+    if (t.isMyDay) t.focusOrder = getMinFocusOrder();
     renderAll();
     pushToCloud();
   }
 
-  function toggleComplete(id, e) {
+  function completeFromList(id, e) {
     e.stopPropagation();
+    if (toggleCompleteById(id)) {
+      showToast("Tarefa concluída");
+    }
+  }
+
+  function toggleCompleteById(id) {
     const t = tasks.find(x => x.id === id);
-    if (!t) return;
+    if (!t) return false;
 
     if (!t.completed && isTaskBlocked(t)) {
       const pred = tasks.find(x => x.id === t.dependsOn);
       showToast(`Bloqueada por: "${pred ? pred.title : "tarefa anterior"}"`);
-      renderAll();
-      return;
+      return false;
     }
 
     t.completed = !t.completed;
@@ -1011,7 +1002,21 @@
     }
 
     renderAll();
+    if (document.getElementById("completedModal").classList.contains("open")) {
+      renderCompletedModal();
+    }
     pushToCloud();
+    return true;
+  }
+
+  function toggleCompleteFromModal() {
+    if (!currentEditId) return;
+    const t = tasks.find(x => x.id === currentEditId);
+    const wasCompleted = t ? t.completed : false;
+    if (toggleCompleteById(currentEditId)) {
+      closeModal("editModal");
+      showToast(wasCompleted ? "Tarefa reaberta" : "Tarefa concluída");
+    }
   }
 
   function spawnNextRecurrence(task) {
@@ -1069,7 +1074,7 @@
     });
   }
 
-  function sortFocusTasks(list) {
+  function sortStarredTasks(list) {
     return [...list].sort((a, b) => {
       const aHas = typeof a.focusOrder === "number";
       const bHas = typeof b.focusOrder === "number";
@@ -1085,59 +1090,32 @@
   }
 
   function renderAll() {
-    const todayTasks = sortFocusTasks(tasks.filter(t => !t.completed && t.isMyDay));
-    const generalTasks = sortByPriorityAndDue(tasks.filter(t => !t.completed && !t.isMyDay));
+    const starredTasks = sortStarredTasks(tasks.filter(t => !t.completed && t.isMyDay));
+    const regularTasks = sortByPriorityAndDue(tasks.filter(t => !t.completed && !t.isMyDay));
+    const allActive = [...starredTasks, ...regularTasks];
+    const doneCount = tasks.filter(t => t.completed).length;
+
+    document.getElementById("menuCompletedCount").textContent = doneCount;
+
+    document.getElementById("taskList").innerHTML = allActive.length
+      ? allActive.map(t => renderRow(t, !!t.isMyDay)).join("")
+      : `<div class="empty-msg">Nenhuma tarefa pendente</div>`;
+  }
+
+  function renderCompletedModal() {
     const doneTasks = tasks.filter(t => t.completed);
-
-    // Foco Agora (Topo)
-    document.getElementById("todayCount").textContent = todayTasks.length;
-    document.getElementById("todayList").innerHTML = todayTasks.length
-      ? todayTasks.map(t => renderRow(t, true)).join("")
-      : `<div class="empty-msg">Nenhuma tarefa em Foco Agora.</div>`;
-
-    // Tarefas (Colapsável)
-    document.getElementById("toggleTasksBtn").textContent =
-      `${showTasks ? "▾" : "▸"} Tarefas (${generalTasks.length})`;
-    const genList = document.getElementById("generalList");
-    genList.style.display = showTasks ? "flex" : "none";
-    genList.innerHTML = showTasks
-      ? (generalTasks.length
-          ? generalTasks.map(t => renderRow(t, false)).join("")
-          : `<div class="empty-msg">Nenhuma tarefa pendente.</div>`)
-      : "";
-
-    // Concluídas (Colapsável)
-    const compArea = document.getElementById("completedArea");
-    if (doneTasks.length > 0) {
-      compArea.style.display = "flex";
-      document.getElementById("toggleCompletedBtn").textContent =
-        `${showCompleted ? "▾ Ocultar" : "▸ Mostrar"} concluídas (${doneTasks.length})`;
-      const compList = document.getElementById("completedList");
-      compList.style.display = showCompleted ? "flex" : "none";
-      compList.innerHTML = showCompleted ? doneTasks.map(t => renderRow(t, false)).join("") : "";
-    } else {
-      compArea.style.display = "none";
-    }
+    document.getElementById("completedModalTitle").textContent = `Concluídas (${doneTasks.length})`;
+    document.getElementById("completedList").innerHTML = doneTasks.length
+      ? doneTasks.map(t => renderCompletedRow(t)).join("")
+      : `<div class="empty-msg">Nenhuma tarefa concluída</div>`;
   }
 
-  function toggleShowTasks() {
-    showTasks = !showTasks;
-    renderAll();
-  }
-
-  function toggleShowCompleted() {
-    showCompleted = !showCompleted;
-    renderAll();
-  }
-
-  function renderRow(t, isFocusList) {
+  function renderRow(t, isStarred) {
     const blocked = isTaskBlocked(t);
     const pred = blocked ? tasks.find(x => x.id === t.dependsOn) : null;
     const metas = [];
 
-    if (blocked) {
-      metas.push(`<span class="meta-blocked">🔒 ${escapeHtml(pred ? pred.title : "Bloqueada")}</span>`);
-    }
+    if (blocked) metas.push(`<span class="meta-blocked">Bloqueada: ${escapeHtml(pred ? pred.title : "anterior")}</span>`);
     if (t.dueDate) {
       const d = new Date(t.dueDate);
       const now = new Date();
@@ -1150,56 +1128,88 @@
       const done = t.subtasks.filter(s => s.completed).length;
       metas.push(`<span>${done}/${t.subtasks.length}</span>`);
     }
-    if (t.alertType === "alarm") metas.push(`<span>⏰</span>`);
-    else if (t.alertType === "notification") metas.push(`<span>🔔</span>`);
-    if (t.recurrence && t.recurrence.mode !== "none") metas.push(`<span>🔁</span>`);
-    if (t.attachments && t.attachments.length) metas.push(`<span>📎 ${t.attachments.length}</span>`);
-    if (t.notes) metas.push(`<span>📝</span>`);
+    if (t.alertType === "alarm") metas.push(`<span>Alarme</span>`);
+    else if (t.alertType === "notification") metas.push(`<span>Alerta</span>`);
+    if (t.recurrence && t.recurrence.mode !== "none") metas.push(`<span>Recorrente</span>`);
+    if (t.attachments && t.attachments.length) metas.push(`<span>${t.attachments.length} anexo(s)</span>`);
+    if (t.notes) metas.push(`<span>Nota</span>`);
     (t.tags || []).forEach(tag => metas.push(`<span class="meta-tag">#${escapeHtml(tag)}</span>`));
 
-    const dragAttrs = isFocusList
+    const prioBarHtml = (!t.completed && (t.priority === 1 || t.priority === 2))
+      ? `<span class="prio-bar p-${t.priority}"></span>`
+      : "";
+
+    const dragAttrs = isStarred
       ? `draggable="true"
+         data-starred="true"
          data-id="${t.id}"
          ondragstart="onDragStart(event, '${t.id}')"
          ondragover="onDragOver(event, '${t.id}')"
          ondragleave="onDragLeave(event)"
          ondrop="onDrop(event, '${t.id}')"
-         ondragend="onDragEnd(event)"`
+         ondragend="onDragEnd(event)"
+         ontouchstart="onRowTouchStart(event, '${t.id}')"
+         ontouchmove="onRowTouchMove(event)"
+         ontouchend="onRowTouchEnd()"
+         ontouchcancel="onRowTouchEnd()"`
       : `data-id="${t.id}"`;
 
-    const handleHtml = isFocusList
-      ? `<span class="drag-handle"
-               title="Arrastar para reordenar"
-               ontouchstart="onTouchStart(event, '${t.id}')"
-               ontouchmove="onTouchMove(event)"
-               ontouchend="onTouchEnd(event)">⋮⋮</span>`
-      : "";
+    const starSvg = isStarred
+      ? `<svg width="19" height="19" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+         </svg>`
+      : `<svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+         </svg>`;
 
     return `
-      <div class="task-row p-${t.priority} ${t.completed ? "completed" : ""} ${blocked ? "blocked" : ""}" ${dragAttrs}>
-        ${handleHtml}
-        <input type="checkbox" class="task-check" ${t.completed ? "checked" : ""} onclick="toggleComplete('${t.id}', event)" />
-        <div class="task-content" onclick="openEditModal('${t.id}')">
+      <div class="task-row ${blocked ? "blocked" : ""}" ${dragAttrs}>
+        ${prioBarHtml}
+        <button type="button" class="check-btn" onclick="completeFromList('${t.id}', event)" title="Concluir tarefa" aria-label="Concluir tarefa">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+        </button>
+        <div class="task-content" onclick="handleTaskClick('${t.id}')">
           <div class="task-title">${escapeHtml(t.title)}</div>
           <div class="task-submeta">${metas.join(" · ")}</div>
         </div>
-        <button type="button" class="star-btn ${t.isMyDay ? "active" : ""}" onclick="toggleToday('${t.id}', event)" title="${t.isMyDay ? "Remover de Foco Agora" : "Mover para Foco Agora"}">
-          ${t.isMyDay ? "★" : "☆"}
+        <button type="button" class="star-btn ${isStarred ? "active" : ""}" onclick="toggleStar('${t.id}', event)" title="${isStarred ? "Remover destaque" : "Destacar no topo"}">
+          ${starSvg}
         </button>
       </div>
     `;
   }
 
-  // --- DRAG & DROP (DESKTOP + TOUCH MOBILE) ---
+  function renderCompletedRow(t) {
+    return `
+      <div class="task-row completed" data-id="${t.id}">
+        <div class="task-content" onclick="openEditModal('${t.id}')">
+          <div class="task-title">${escapeHtml(t.title)}</div>
+          ${t.completedAt ? `<div class="task-submeta">Concluída em ${formatDate(t.completedAt)}</div>` : ""}
+        </div>
+        <button type="button" class="btn" style="padding:4px 10px; font-size:0.78rem;" onclick="toggleCompleteById('${t.id}')" title="Reabrir tarefa">
+          Reabrir
+        </button>
+      </div>
+    `;
+  }
+
+  function handleTaskClick(id) {
+    if (justDragged) return;
+    openEditModal(id);
+  }
+
+  // --- DRAG & DROP (MOUSE + PRESS-AND-HOLD TOUCH NA TAREFA) ---
   function clearDragIndicators() {
-    document.querySelectorAll("#todayList .task-row").forEach(el => {
+    document.querySelectorAll("#taskList .task-row").forEach(el => {
       el.classList.remove("drag-over-top", "drag-over-bottom", "dragging");
     });
   }
 
   function applyFocusReorder(sourceId, targetId, insertAfter) {
     if (!sourceId || !targetId || sourceId === targetId) return;
-    const ordered = sortFocusTasks(tasks.filter(t => !t.completed && t.isMyDay));
+    const ordered = sortStarredTasks(tasks.filter(t => !t.completed && t.isMyDay));
     const fromIdx = ordered.findIndex(t => t.id === sourceId);
     if (fromIdx === -1) return;
 
@@ -1209,16 +1219,18 @@
     if (insertAfter) toIdx += 1;
 
     ordered.splice(toIdx, 0, moved);
-    ordered.forEach((t, idx) => {
-      t.focusOrder = idx;
-    });
+    ordered.forEach((t, idx) => { t.focusOrder = idx; });
 
     renderAll();
     pushToCloud();
   }
 
-  // Mouse / HTML5 Drag & Drop
+  // Desktop (Mouse Drag)
   function onDragStart(e, id) {
+    if (e.target.closest("button")) {
+      e.preventDefault();
+      return;
+    }
     draggedTaskId = id;
     e.dataTransfer.effectAllowed = "move";
     e.dataTransfer.setData("text/plain", id);
@@ -1233,7 +1245,7 @@
     const after = (e.clientY - rect.top) > rect.height / 2;
 
     clearDragIndicators();
-    const draggingEl = document.querySelector(`#todayList .task-row[data-id="${draggedTaskId}"]`);
+    const draggingEl = document.querySelector(`#taskList .task-row[data-id="${draggedTaskId}"]`);
     if (draggingEl) draggingEl.classList.add("dragging");
 
     dropTargetId = targetId;
@@ -1252,6 +1264,8 @@
     clearDragIndicators();
     draggedTaskId = null;
     dropTargetId = null;
+    justDragged = true;
+    setTimeout(() => { justDragged = false; }, 250);
     applyFocusReorder(src, targetId, after);
   }
 
@@ -1259,26 +1273,46 @@
     clearDragIndicators();
     draggedTaskId = null;
     dropTargetId = null;
+    justDragged = true;
+    setTimeout(() => { justDragged = false; }, 250);
   }
 
-  // Touch Drag & Drop (Celular / Tablet)
-  function onTouchStart(e, id) {
-    e.stopPropagation();
-    draggedTaskId = id;
+  // Mobile / Touch (Segurar apertado por ~280ms e arrastar)
+  function onRowTouchStart(e, id) {
+    if (e.target.closest("button") || e.touches.length !== 1) return;
+    clearTimeout(longPressTimer);
+    isTouchDragging = false;
     dropTargetId = null;
-    const row = e.target.closest(".task-row");
-    if (row) row.classList.add("dragging");
+
+    const touch = e.touches[0];
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    const rowEl = e.currentTarget;
+
+    longPressTimer = setTimeout(() => {
+      isTouchDragging = true;
+      draggedTaskId = id;
+      justDragged = true;
+      rowEl.classList.add("dragging");
+      if (navigator.vibrate) navigator.vibrate(25);
+    }, 280);
   }
 
-  function onTouchMove(e) {
-    if (!draggedTaskId) return;
-    e.preventDefault();
+  function onRowTouchMove(e) {
     const touch = e.touches[0];
+    if (!isTouchDragging) {
+      if (Math.abs(touch.clientX - touchStartX) > 8 || Math.abs(touch.clientY - touchStartY) > 8) {
+        clearTimeout(longPressTimer);
+      }
+      return;
+    }
+
+    e.preventDefault();
     const elUnder = document.elementFromPoint(touch.clientX, touch.clientY);
-    const targetRow = elUnder ? elUnder.closest("#todayList .task-row") : null;
+    const targetRow = elUnder ? elUnder.closest('#taskList .task-row[data-starred="true"]') : null;
 
     clearDragIndicators();
-    const draggingEl = document.querySelector(`#todayList .task-row[data-id="${draggedTaskId}"]`);
+    const draggingEl = document.querySelector(`#taskList .task-row[data-id="${draggedTaskId}"]`);
     if (draggingEl) draggingEl.classList.add("dragging");
 
     if (targetRow && targetRow.dataset.id !== draggedTaskId) {
@@ -1292,16 +1326,21 @@
     }
   }
 
-  function onTouchEnd() {
+  function onRowTouchEnd() {
+    clearTimeout(longPressTimer);
+    if (!isTouchDragging) return;
+
     const src = draggedTaskId;
     const tgt = dropTargetId;
     const after = dropInsertAfter;
+
     clearDragIndicators();
+    isTouchDragging = false;
     draggedTaskId = null;
     dropTargetId = null;
-    if (src && tgt) {
-      applyFocusReorder(src, tgt, after);
-    }
+
+    setTimeout(() => { justDragged = false; }, 350);
+    if (src && tgt) applyFocusReorder(src, tgt, after);
   }
 
   // --- EDIÇÃO E DETALHES ---
@@ -1318,6 +1357,15 @@
     document.getElementById("editAlertTime").value = t.alertTime || "";
     document.getElementById("editTags").value = (t.tags || []).join(", ");
     document.getElementById("editNotes").value = t.notes || "";
+
+    const completeBtn = document.getElementById("toggleCompleteBtn");
+    if (t.completed) {
+      completeBtn.textContent = "Reabrir tarefa";
+      completeBtn.className = "btn";
+    } else {
+      completeBtn.textContent = "Concluir tarefa";
+      completeBtn.className = "btn btn-green";
+    }
 
     const depSel = document.getElementById("editDependsOn");
     depSel.innerHTML = `<option value="">Nenhuma</option>` +
@@ -1349,9 +1397,7 @@
     const wasMyDay = !!t.isMyDay;
     t.title = document.getElementById("editTitle").value.trim() || t.title;
     t.isMyDay = document.getElementById("editIsToday").checked;
-    if (t.isMyDay && !wasMyDay) {
-      t.focusOrder = getMinFocusOrder();
-    }
+    if (t.isMyDay && !wasMyDay) t.focusOrder = getMinFocusOrder();
 
     t.priority = parseInt(document.getElementById("editPriority").value, 10);
     t.dueDate = document.getElementById("editDue").value;
@@ -1381,6 +1427,9 @@
     tasks = tasks.filter(x => x.id !== currentEditId);
     closeModal("editModal");
     renderAll();
+    if (document.getElementById("completedModal").classList.contains("open")) {
+      renderCompletedModal();
+    }
     pushToCloud();
   }
 
@@ -1461,8 +1510,8 @@
   function renderAttachments(t) {
     document.getElementById("attachmentsList").innerHTML = (t.attachments || []).map((a, idx) => `
       <div class="item-chip">
-        <a href="${a.url}" target="_blank" rel="noopener" style="color:#60a5fa; text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
-          📎 ${escapeHtml(a.name)}
+        <a href="${a.url}" target="_blank" rel="noopener" style="color:var(--accent); text-decoration:none; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+          ${escapeHtml(a.name)}
         </a>
         <button type="button" class="close-x" onclick="removeAttachment(${idx})">✕</button>
       </div>
@@ -1504,7 +1553,7 @@
             renderAll();
             pushToCloud();
           }
-          msg.textContent = "Salvo no Drive ✓";
+          msg.textContent = "Salvo no Drive";
         } else {
           msg.textContent = "Erro ao enviar.";
         }
@@ -1534,7 +1583,7 @@
         t.alertTriggered = true;
         pushToCloud();
         if (t.alertType === "notification") {
-          showToast(`🔔 ${t.title}`);
+          showToast(t.title);
           if ("Notification" in window && Notification.permission === "granted") {
             new Notification("Lembrete", { body: t.title });
           }
@@ -1552,7 +1601,7 @@
     openModal("alarmModal");
 
     if ("Notification" in window && Notification.permission === "granted") {
-      new Notification("⏰ Despertador: " + task.title, { requireInteraction: true });
+      new Notification("Despertador: " + task.title, { requireInteraction: true });
     }
 
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
