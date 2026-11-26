@@ -521,33 +521,26 @@
     </div>
 
     <div class="field">
-      <label>Título</label>
-      <input type="text" id="newTitle" placeholder="O que precisa ser feito?" required />
+      <input type="text" id="newTitle" placeholder="O que precisa ser feito?" aria-label="Título" required onkeydown="if(event.key==='Enter'){event.preventDefault();this.form.requestSubmit();}" />
     </div>
 
-    <div class="field-row">
-      <div class="field">
-        <label>Prioridade</label>
-        <select id="newPriority">
-          <option value="1">Urgente</option>
-          <option value="2">Alta</option>
-          <option value="3" selected>Normal</option>
-          <option value="4">Baixa</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Prazo</label>
-        <input type="datetime-local" id="newDue" />
-      </div>
+    <div class="field">
+      <select id="newPriority" aria-label="Prioridade">
+        <option value="1">Urgente</option>
+        <option value="2">Alta</option>
+        <option value="3" selected>Normal</option>
+        <option value="4">Baixa</option>
+      </select>
     </div>
 
-    <label class="check-inline">
-      <input type="checkbox" id="newIsToday" /> Destacar com estrela no topo
-    </label>
-
-    <details class="advanced-box">
-      <summary>+ Mais detalhes (Alerta, Recorrência, Dependência, Tags, Notas)</summary>
+    <details id="newAdvancedDetails" class="advanced-box">
+      <summary>Mais detalhes</summary>
       <div class="advanced-fields">
+        <div class="field">
+          <label>Prazo</label>
+          <input type="datetime-local" id="newDue" />
+        </div>
+
         <div class="field-row">
           <div class="field">
             <label>Alerta / Despertador</label>
@@ -989,12 +982,12 @@
     document.getElementById("newTitle").value = "";
     document.getElementById("newPriority").value = "3";
     document.getElementById("newDue").value = "";
-    document.getElementById("newIsToday").checked = false;
     document.getElementById("newAlertType").value = "none";
     document.getElementById("newAlertTime").value = "";
     document.getElementById("newRecMode").value = "none";
     document.getElementById("newTags").value = "";
     document.getElementById("newNotes").value = "";
+    document.getElementById("newAdvancedDetails").open = false;
     toggleNewRecFields();
 
     const depSel = document.getElementById("newDependsOn");
@@ -1032,7 +1025,6 @@
     const dueDate = document.getElementById("newDue").value;
     const alertType = document.getElementById("newAlertType").value;
     const alertTime = document.getElementById("newAlertTime").value || (alertType !== "none" ? dueDate : "");
-    const isMyDay = document.getElementById("newIsToday").checked;
 
     const task = {
       id: "t_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6),
@@ -1041,8 +1033,8 @@
       completedAt: null,
       priority: parseInt(document.getElementById("newPriority").value, 10),
       dueDate,
-      isMyDay,
-      focusOrder: isMyDay ? -1 : null,
+      isMyDay: false,
+      focusOrder: null,
       alertType,
       alertTime,
       alertTriggered: false,
@@ -1059,7 +1051,6 @@
     };
 
     tasks.unshift(task);
-    if (isMyDay) normalizeStarOrder();
     closeModal("createModal");
     renderAll();
     pushToCloud();
